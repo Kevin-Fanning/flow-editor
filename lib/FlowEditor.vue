@@ -15,21 +15,21 @@
           id="GridLayer"
           x="0"
           y="0"
-          :width="GRID_SIZE"
-          :height="GRID_SIZE"
+          :width="gridSize"
+          :height="gridSize"
           patternUnits="userSpaceOnUse"
         >
           <rect
             fill="#404040"
             x="0"
             y="0"
-            :width="GRID_SIZE"
-            :height="GRID_SIZE"
+            :width="gridSize"
+            :height="gridSize"
           />
           <line
             x1="0"
             :y1="gridY"
-            :x2="GRID_SIZE"
+            :x2="gridSize"
             :y2="gridY"
             stroke="#505050"
             stroke-width="2"
@@ -38,7 +38,7 @@
             :x1="gridX"
             y1="0"
             :x2="gridX"
-            :y2="GRID_SIZE"
+            :y2="gridSize"
             stroke="#505050"
             stroke-width="2"
           />
@@ -104,20 +104,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 
 import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
 
-const GRID_SIZE = 50;
+const $props = withDefaults(defineProps<{
+	gridSize?: number;
+	nodes: Node[];
+}>(), {
+	gridSize: 50,
+	nodes: () => [],
+});
 
-const gridElement = ref(null);
+const $emit = defineEmits(['update:node']);
+
 const scrollX = ref(25);
 const scrollY = ref(0);
 const scale = ref(1);
-const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % GRID_SIZE : (GRID_SIZE + (scrollX.value % GRID_SIZE)));
-const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % GRID_SIZE : (GRID_SIZE + (scrollY.value % GRID_SIZE)));
+const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % $props.gridSize : ($props.gridSize + (scrollX.value % $props.gridSize)));
+const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSize : ($props.gridSize + (scrollY.value % $props.gridSize)));
 
 let isDraggingGrid = false;
 let draggingNode: null|Node = null;
@@ -127,7 +134,7 @@ let dragYStart = 0;
 let startScrollX = 0;
 let startScrollY = 0;
 
-interface Node {
+export interface Node {
 	nodeId: number;
 	title: string;
 	type: string;
@@ -139,68 +146,9 @@ interface Node {
 	prompt?: string;
 }
 
-const nodes = reactive<Node[]>([{
-	nodeId: 0,
-	title: 'Start',
-	type: 'start',
-	x: 10,
-	y: 10,
-	width: 100,
-	outputs: [{
-		name: "Begin",
-		to: 1,
-	}],
-}, {
-	nodeId: 1,
-	title: 'Provider Splitter',
-	type: 'custom_outputs',
-	x: 200,
-	y: 100,
-	width: 300,
-	outputs: [{
-		name: 'Default',
-		to: 2,
-	},{
-		name: 'Dr. Jones'
-	}, {
-		name: 'Fred Savage',
-	}, {
-		name: 'Robert Windham'
-	}]
-}, {
-	nodeId: 2,
-	type: 'prompt',
-	title: 'Direct Referral',
-	prompt: 'Does the patient have a direct referral?',
-	x: 600,
-	y: 300,
-	outputs: [{
-		name: 'Yes',
-		to: 3,
-	}, {
-		name: 'No',
-		to: 4,
-	}],
-}, {
-	nodeId: 3,
-	type: 'exit',
-	title: 'DNP (Direct New Patient)',
-	x: 1000,
-	y: 300,
-	width: 300,
-	outputs: [],
-}, {
-	nodeId: 4,
-	type: 'exit',
-	title: 'NP (New Patient)',
-	x: 1000,
-	y: 400,
-	width: 300,
-	outputs: [],
-}]);
 
 const selected = computed(() => {
-	return nodes.find(node => node.selected);
+	return $props.nodes.find(node => node.selected);
 });
 
 function selectNode(nodeId: number) {
@@ -208,18 +156,18 @@ function selectNode(nodeId: number) {
 		didNodeDrag = false;
 		return;
 	}
-	nodes.forEach((node) => {
+	$props.nodes.forEach((node) => {
 		if (node.nodeId === nodeId) {
 			node.selected = true;
 		} else {
 			node.selected = false;
 		}
 	});
-	nodes.sort((a, b) => {
+	$emit('update:node', $props.nodes.slice().sort((a, b) => {
 		if (a.selected) { return 1; }
 		if (b.selected) { return -1; }
 		return 0;
-	});
+	}));
 }
 
 function updateNode(props: Partial<Node>) {
@@ -229,7 +177,7 @@ function updateNode(props: Partial<Node>) {
 }
 
 function closeNode() {
-	const selected = nodes.find(node => node.selected);
+	const selected = $props.nodes.find(node => node.selected);
 	if (selected) {
 		selected.selected = false;
 	}
@@ -246,10 +194,10 @@ interface Edge {
 
 const edges = computed(() => {
 	const total: Edge[] = [];
-	nodes.forEach((node) => {
+	$props.nodes.forEach((node) => {
 		node.outputs.forEach((output, i) => {
 			if (output.to) {
-				const other = nodes.find(n => n.nodeId === output.to);
+				const other = $props.nodes.find(n => n.nodeId === output.to);
 				if (other) {
 					let outputStart = 63;
 					if (node.type === 'start') {
@@ -292,11 +240,11 @@ function nodeDragStart(evt: MouseEvent, node: Node) {
 	dragYStart = evt.clientY;
 	startScrollX = node.x;
 	startScrollY = node.y;
-	nodes.sort((a, b) => {
+	$emit('update:node', $props.nodes.slice().sort((a, b) => {
 		if (a.nodeId === node.nodeId) { return 1; }
 		if (b.nodeId === node.nodeId) { return -1; }
 		return 0;
-	});
+	}));
 }
 
 function dragging(evt: MouseEvent) {
