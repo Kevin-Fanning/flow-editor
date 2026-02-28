@@ -1,5 +1,5 @@
-<script setup>
-import FlowEditor from './FlowEditor.vue'
+<script setup lang="ts">
+import FlowEditor from '../lib/FlowEditor.vue'
 </script>
 
 <template>

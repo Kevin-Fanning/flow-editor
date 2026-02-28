@@ -1,0 +1,12 @@
+{
+    "extends": [
+        "@vue/tsconfig/tsconfig.dom.json",
+        "@vue/tsconfig/tsconfig.lib.json"
+    ],
+    "include": [
+        "lib/**.ts",
+        "lib/**.vue",
+        "src/**.ts",
+        "src/**.vue"
+    ]
+}

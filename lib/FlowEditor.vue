@@ -1,74 +1,145 @@
 <template>
-	<div class="flow-editor" @mouseup="dragEnd" @mouseleave="dragEnd" @mousemove="dragging">
-		<svg :width="selected ? 'calc(100% - 500px)' : '100%'" height="100%" @wheel="magnify">
-			<defs>
-				<pattern id="GridLayer" x="0" y="0" :width="GRID_SIZE" :height="GRID_SIZE" patternUnits="userSpaceOnUse">
-					<rect fill="#404040" x="0" y="0" :width="GRID_SIZE" :height="GRID_SIZE" />
-					<line x1="0" :y1="gridY" :x2="GRID_SIZE" :y2="gridY" stroke="#505050" stroke-width="2" />
-					<line :x1="gridX" y1="0" :x2="gridX" :y2="GRID_SIZE" stroke="#505050" stroke-width="2" />
-				</pattern>
-			</defs>
-			<g :style="`transform: scale(${scale})`">
-				<rect
-					fill="url(#GridLayer)" :width="`${100 * (1 / scale)}%`" :height="`${100 * (1 / scale)}%`" draggable ref="gridElement" @mousedown="gridDragStart" />
-				<g :style="{
-					transform: `translate(${scrollX}px, ${scrollY}px)`
-				}">
-					<template v-for="node in nodes" :key="node.nodeId">
-						<StartNode v-if="node.type === 'start'"
-							v-bind="node"
-						/>
-						<BaseNode
-							v-else
-							v-bind="node"
-							@select="selectNode"
-							@mousedown="evt => nodeDragStart(evt, node)"
-						/>
-					</template>
-					<g class="edge-line" v-for="edge in edges" :key="edge.idx">
-						<path
-							class="hover-target"
-							:d="edge.d"
-						/>
-						<path
-							class="visible"
-							:d="edge.d"
-						/>
-					</g>
-				</g>
-			</g>
-		</svg>
-		<div v-show="selected" class="node-editor">
-			<NodeEditor v-bind="selected" @close="closeNode" @update="updateNode" />
-		</div>
-	</div>
+  <div
+    class="flow-editor"
+    @mouseup="dragEnd"
+    @mouseleave="dragEnd"
+    @mousemove="dragging"
+  >
+    <svg
+      :width="selected ? 'calc(100% - 500px)' : '100%'"
+      height="100%"
+      @wheel="magnify"
+    >
+      <defs>
+        <pattern
+          id="GridLayer"
+          x="0"
+          y="0"
+          :width="GRID_SIZE"
+          :height="GRID_SIZE"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect
+            fill="#404040"
+            x="0"
+            y="0"
+            :width="GRID_SIZE"
+            :height="GRID_SIZE"
+          />
+          <line
+            x1="0"
+            :y1="gridY"
+            :x2="GRID_SIZE"
+            :y2="gridY"
+            stroke="#505050"
+            stroke-width="2"
+          />
+          <line
+            :x1="gridX"
+            y1="0"
+            :x2="gridX"
+            :y2="GRID_SIZE"
+            stroke="#505050"
+            stroke-width="2"
+          />
+        </pattern>
+      </defs>
+      <g :style="`transform: scale(${scale})`">
+        <rect
+          fill="url(#GridLayer)"
+          :width="`${100 * (1 / scale)}%`"
+          :height="`${100 * (1 / scale)}%`"
+          draggable
+          ref="gridElement"
+          @mousedown="gridDragStart"
+        />
+        <g
+          :style="{
+            transform: `translate(${scrollX}px, ${scrollY}px)`
+          }"
+        >
+          <template
+            v-for="node in nodes"
+            :key="node.nodeId"
+          >
+            <StartNode
+              v-if="node.type === 'start'"
+              v-bind="node"
+            />
+            <BaseNode
+              v-else
+              v-bind="node"
+              @select="selectNode"
+              @mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
+            />
+          </template>
+          <g
+            class="edge-line"
+            v-for="edge in edges"
+            :key="edge.idx"
+          >
+            <path
+              class="hover-target"
+              :d="edge.d"
+            />
+            <path
+              class="visible"
+              :d="edge.d"
+            />
+          </g>
+        </g>
+      </g>
+    </svg>
+    <div
+      v-show="selected"
+      class="node-editor"
+    >
+      <NodeEditor
+        v-bind="selected"
+        @close="closeNode"
+        @update="updateNode"
+      />
+    </div>
+  </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, reactive, onMounted } from 'vue';
 
-import BaseNode from '@/components/BaseNode.vue';
+import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
 
 const GRID_SIZE = 50;
 
-let gridElement = ref(null);
-let scrollX = ref(25);
-let scrollY = ref(0);
-let scale = ref(1);
-let gridX = computed(() => scrollX.value >= 0 ? scrollX.value % GRID_SIZE : (GRID_SIZE + (scrollX.value % GRID_SIZE)));
-let gridY = computed(() => scrollY.value >= 0 ? scrollY.value % GRID_SIZE : (GRID_SIZE + (scrollY.value % GRID_SIZE)));
+const gridElement = ref(null);
+const scrollX = ref(25);
+const scrollY = ref(0);
+const scale = ref(1);
+const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % GRID_SIZE : (GRID_SIZE + (scrollX.value % GRID_SIZE)));
+const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % GRID_SIZE : (GRID_SIZE + (scrollY.value % GRID_SIZE)));
 
 let isDraggingGrid = false;
-let draggingNode = null;
+let draggingNode: null|Node = null;
 let didNodeDrag = false;
 let dragXStart = 0;
 let dragYStart = 0;
 let startScrollX = 0;
 let startScrollY = 0;
 
-let nodes = reactive([{
+interface Node {
+	nodeId: number;
+	title: string;
+	type: string;
+	x: number;
+	y: number;
+	width?: number;
+	outputs: { name: string, to?: number }[];
+	selected?: boolean;
+	prompt?: string;
+}
+
+const nodes = reactive<Node[]>([{
 	nodeId: 0,
 	title: 'Start',
 	type: 'start',
@@ -128,11 +199,11 @@ let nodes = reactive([{
 	outputs: [],
 }]);
 
-let selected = computed(() => {
+const selected = computed(() => {
 	return nodes.find(node => node.selected);
 });
 
-function selectNode(nodeId) {
+function selectNode(nodeId: number) {
 	if (didNodeDrag) {
 		didNodeDrag = false;
 		return;
@@ -151,8 +222,10 @@ function selectNode(nodeId) {
 	});
 }
 
-function updateNode(props) {
-	Object.assign(selected.value, props);
+function updateNode(props: Partial<Node>) {
+	if (selected.value) {
+		Object.assign(selected.value, props);
+	}
 }
 
 function closeNode() {
@@ -162,8 +235,17 @@ function closeNode() {
 	}
 }
 
-let edges = computed(() => {
-	const total = [];
+interface Edge {
+	idx: number;
+	x1: number;
+	x2: number;
+	y1: number;
+	y2: number;
+	d?: string;
+}
+
+const edges = computed(() => {
+	const total: Edge[] = [];
 	nodes.forEach((node) => {
 		node.outputs.forEach((output, i) => {
 			if (output.to) {
@@ -175,7 +257,7 @@ let edges = computed(() => {
 					}
 					const outputHeight = 35;
 					const inputStart = 30;
-					const edge = {
+					const edge: Edge = {
 						idx: i,
 						x1: node.x + (node.width || 200),
 						y1: node.y + outputStart + (i * outputHeight),
@@ -195,7 +277,7 @@ let edges = computed(() => {
 onMounted(() => {
 });
 
-function gridDragStart(evt) {
+function gridDragStart(evt: MouseEvent) {
 	dragXStart = evt.clientX;
 	dragYStart = evt.clientY;
 	startScrollX = scrollX.value;
@@ -203,7 +285,7 @@ function gridDragStart(evt) {
 	isDraggingGrid = true;
 }
 
-function nodeDragStart(evt, node) {
+function nodeDragStart(evt: MouseEvent, node: Node) {
 	draggingNode = node;
 	didNodeDrag = false;
 	dragXStart = evt.clientX;
@@ -217,7 +299,7 @@ function nodeDragStart(evt, node) {
 	});
 }
 
-function dragging(evt) {
+function dragging(evt: MouseEvent) {
 	if (isDraggingGrid) {
 		scrollX.value = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
 		scrollY.value = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
@@ -237,8 +319,8 @@ function dragEnd() {
 			// Don't count this, user meant to click
 			draggingNode = null;
 			didNodeDrag = false;
-			draggingNode.x = startScrollX;
-			draggingNode.y = startScrollY;
+			draggingNode!.x = startScrollX;
+			draggingNode!.y = startScrollY;
 			return;
 		}
 		didNodeDrag = startScrollX !== draggingNode.x || startScrollY !== draggingNode.y;
@@ -246,7 +328,7 @@ function dragEnd() {
 	}
 }
 
-function magnify(evt) {
+function magnify(evt: WheelEvent) {
 	scale.value += Math.sign(evt.deltaY) * -0.25;
 	scale.value = Math.min(Math.max(0.5, scale.value), 2);
 }
