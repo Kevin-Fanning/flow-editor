@@ -70,15 +70,15 @@ import { computed } from 'vue';
 defineEmits(['select', 'select-output']);
 
 const $props = withDefaults(defineProps<{
-  nodeId: number;
-  type: string;
-  x?: number;
-  y?: number;
-  width?: number;
-  title?: string;
-  fill?: string;
-  outputs?: { name: string }[];
-  selected?: boolean;
+	nodeId: number;
+	type: string;
+	x?: number;
+	y?: number;
+	width?: number;
+	title?: string;
+	fill?: string;
+	outputs?: { name: string }[];
+	selected?: boolean;
 }>(), {
 	x: 0,
 	y: 0,

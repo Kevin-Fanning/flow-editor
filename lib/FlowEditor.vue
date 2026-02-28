@@ -127,7 +127,7 @@ const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % $props.gridSiz
 const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSize : ($props.gridSize + (scrollY.value % $props.gridSize)));
 
 let isDraggingGrid = false;
-let draggingNode: null|Node = null;
+let draggingNode: null | Node = null;
 let didNodeDrag = false;
 let dragXStart = 0;
 let dragYStart = 0;
@@ -141,11 +141,10 @@ export interface Node {
 	x: number;
 	y: number;
 	width?: number;
-	outputs: { name: string, to?: number }[];
+	outputs: { name: string; to?: number }[];
 	selected?: boolean;
 	prompt?: string;
 }
-
 
 const selected = computed(() => {
 	return $props.nodes.find(node => node.selected);
@@ -159,13 +158,18 @@ function selectNode(nodeId: number) {
 	$props.nodes.forEach((node) => {
 		if (node.nodeId === nodeId) {
 			node.selected = true;
-		} else {
+		}
+		else {
 			node.selected = false;
 		}
 	});
 	$emit('update:node', $props.nodes.slice().sort((a, b) => {
-		if (a.selected) { return 1; }
-		if (b.selected) { return -1; }
+		if (a.selected) {
+			return 1;
+		}
+		if (b.selected) {
+			return -1;
+		}
 		return 0;
 	}));
 }
@@ -241,8 +245,12 @@ function nodeDragStart(evt: MouseEvent, node: Node) {
 	startScrollX = node.x;
 	startScrollY = node.y;
 	$emit('update:node', $props.nodes.slice().sort((a, b) => {
-		if (a.nodeId === node.nodeId) { return 1; }
-		if (b.nodeId === node.nodeId) { return -1; }
+		if (a.nodeId === node.nodeId) {
+			return 1;
+		}
+		if (b.nodeId === node.nodeId) {
+			return -1;
+		}
 		return 0;
 	}));
 }
@@ -305,7 +313,7 @@ function magnify(evt: WheelEvent) {
 			stroke-width: 6;
 		}
 	}
-	
+
 	.node {
 		&.selected {
 			.node-container {

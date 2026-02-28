@@ -41,20 +41,20 @@ import { computed } from 'vue';
 defineEmits(['select-output']);
 
 const $props = withDefaults(defineProps<{
-  nodeId: number;
-  type: string;
-  x?: number;
-  y?: number;
-  width?: number;
-  fill?: string;
-  outputs?: { name: string }[];
-  selected?: boolean;
+	nodeId: number;
+	type: string;
+	x?: number;
+	y?: number;
+	width?: number;
+	fill?: string;
+	outputs?: { name: string }[];
+	selected?: boolean;
 }>(), {
 	x: 0,
 	y: 0,
 	width: 200,
 	title: '',
-  fill: '#222',
+	fill: '#222',
 	outputs: () => [],
 	selected: false,
 });

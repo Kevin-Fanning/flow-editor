@@ -80,34 +80,34 @@
 import { watch, ref } from 'vue';
 
 const $props = withDefaults(defineProps<{
-  active?: boolean;
-  nodeId?: number;
-  type?: string;
-  x?: number;
-  y?: number;
-  width?: number;
-  title?: string;
-  prompt?: string;
-  fill?: string;
-  outputs?: { name: string }[];
-  selected?: boolean;
+	active?: boolean;
+	nodeId?: number;
+	type?: string;
+	x?: number;
+	y?: number;
+	width?: number;
+	title?: string;
+	prompt?: string;
+	fill?: string;
+	outputs?: { name: string }[];
+	selected?: boolean;
 }>(), {
 	active: false,
-  nodeId: undefined,
+	nodeId: undefined,
 	type: '',
 	x: 0,
 	y: 0,
 	width: 200,
 	title: '',
-  prompt: '',
-  fill: '#222',
+	prompt: '',
+	fill: '#222',
 	outputs: () => [],
 	selected: false,
 });
 
 const titleEdit = ref('');
 const promptEdit = ref('');
-const outputsEdit = ref([]);
+const outputsEdit = ref<{ name: string; to?: number }[]>([]);
 
 const $emit = defineEmits(['close', 'update']);
 
