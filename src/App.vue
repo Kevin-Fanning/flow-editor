@@ -64,9 +64,9 @@ const nodes = ref<Node[]>([{
 </script>
 
 <template>
-  <div class="wrapper">
-    <FlowEditor v-model:nodes="nodes" />
-  </div>
+	<div class="wrapper">
+		<FlowEditor v-model:nodes="nodes" />
+	</div>
 </template>
 
 <style>

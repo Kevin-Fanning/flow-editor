@@ -1,106 +1,106 @@
 <template>
-  <div
-    class="flow-editor"
-    @mouseup="dragEnd"
-    @mouseleave="dragEnd"
-    @mousemove="dragging"
-  >
-    <svg
-      :width="selected ? 'calc(100% - 500px)' : '100%'"
-      height="100%"
-      @wheel="magnify"
-    >
-      <defs>
-        <pattern
-          id="GridLayer"
-          x="0"
-          y="0"
-          :width="gridSize"
-          :height="gridSize"
-          patternUnits="userSpaceOnUse"
-        >
-          <rect
-            fill="#404040"
-            x="0"
-            y="0"
-            :width="gridSize"
-            :height="gridSize"
-          />
-          <line
-            x1="0"
-            :y1="gridY"
-            :x2="gridSize"
-            :y2="gridY"
-            stroke="#505050"
-            stroke-width="2"
-          />
-          <line
-            :x1="gridX"
-            y1="0"
-            :x2="gridX"
-            :y2="gridSize"
-            stroke="#505050"
-            stroke-width="2"
-          />
-        </pattern>
-      </defs>
-      <g :style="`transform: scale(${scale})`">
-        <rect
-          fill="url(#GridLayer)"
-          :width="`${100 * (1 / scale)}%`"
-          :height="`${100 * (1 / scale)}%`"
-          draggable
-          ref="gridElement"
-          @mousedown="gridDragStart"
-        />
-        <g
-          :style="{
-            transform: `translate(${scrollX}px, ${scrollY}px)`
-          }"
-        >
-          <template
-            v-for="node in nodes"
-            :key="node.nodeId"
-          >
-            <StartNode
-              v-if="node.type === 'start'"
-              v-bind="node"
-            />
-            <BaseNode
-              v-else
-              v-bind="node"
-              @select="selectNode"
-              @mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
-            />
-          </template>
-          <g
-            class="edge-line"
-            v-for="edge in edges"
-            :key="edge.idx"
-          >
-            <path
-              class="hover-target"
-              :d="edge.d"
-            />
-            <path
-              class="visible"
-              :d="edge.d"
-            />
-          </g>
-        </g>
-      </g>
-    </svg>
-    <div
-      v-show="selected"
-      class="node-editor"
-    >
-      <NodeEditor
-        v-bind="selected"
-        @close="closeNode"
-        @update="updateNode"
-      />
-    </div>
-  </div>
+	<div
+		class="flow-editor"
+		@mouseup="dragEnd"
+		@mouseleave="dragEnd"
+		@mousemove="dragging"
+	>
+		<svg
+			:width="selected ? 'calc(100% - 500px)' : '100%'"
+			height="100%"
+			@wheel="magnify"
+		>
+			<defs>
+				<pattern
+					id="GridLayer"
+					x="0"
+					y="0"
+					:width="gridSize"
+					:height="gridSize"
+					patternUnits="userSpaceOnUse"
+				>
+					<rect
+						fill="#404040"
+						x="0"
+						y="0"
+						:width="gridSize"
+						:height="gridSize"
+					/>
+					<line
+						x1="0"
+						:y1="gridY"
+						:x2="gridSize"
+						:y2="gridY"
+						stroke="#505050"
+						stroke-width="2"
+					/>
+					<line
+						:x1="gridX"
+						y1="0"
+						:x2="gridX"
+						:y2="gridSize"
+						stroke="#505050"
+						stroke-width="2"
+					/>
+				</pattern>
+			</defs>
+			<g :style="`transform: scale(${scale})`">
+				<rect
+					fill="url(#GridLayer)"
+					:width="`${100 * (1 / scale)}%`"
+					:height="`${100 * (1 / scale)}%`"
+					draggable
+					ref="gridElement"
+					@mousedown="gridDragStart"
+				/>
+				<g
+					:style="{
+						transform: `translate(${scrollX}px, ${scrollY}px)`
+					}"
+				>
+					<template
+						v-for="node in nodes"
+						:key="node.nodeId"
+					>
+						<StartNode
+							v-if="node.type === 'start'"
+							v-bind="node"
+						/>
+						<BaseNode
+							v-else
+							v-bind="node"
+							@select="selectNode"
+							@mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
+						/>
+					</template>
+					<g
+						class="edge-line"
+						v-for="edge in edges"
+						:key="edge.idx"
+					>
+						<path
+							class="hover-target"
+							:d="edge.d"
+						/>
+						<path
+							class="visible"
+							:d="edge.d"
+						/>
+					</g>
+				</g>
+			</g>
+		</svg>
+		<div
+			v-show="selected"
+			class="node-editor"
+		>
+			<NodeEditor
+				v-bind="selected"
+				@close="closeNode"
+				@update="updateNode"
+			/>
+		</div>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -265,10 +265,10 @@ function dragEnd() {
 		const yDist = Math.abs(startScrollY - draggingNode.y);
 		if (xDist <= 5 && yDist <= 5) {
 			// Don't count this, user meant to click
+			draggingNode.x = startScrollX;
+			draggingNode.y = startScrollY;
 			draggingNode = null;
 			didNodeDrag = false;
-			draggingNode!.x = startScrollX;
-			draggingNode!.y = startScrollY;
 			return;
 		}
 		didNodeDrag = startScrollX !== draggingNode.x || startScrollY !== draggingNode.y;

@@ -1,9 +1,7 @@
 import path from 'node:path';
 
-import { defineConfig } from "eslint/config";
 import vue from 'eslint-plugin-vue';
 import globals from 'globals';
-import js from '@eslint/js';
 import { includeIgnoreFile } from '@eslint/compat';
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
 
@@ -12,7 +10,9 @@ export default defineConfigWithVueTs([
 	vue.configs['flat/strongly-recommended'],
 	vueTsConfigs.recommended,
 	{
-		rules: {},
+		rules: {
+			"vue/html-indent": ['error', 'tab'],
+		},
 		languageOptions: {
 			sourceType: 'module',
 			globals: {
