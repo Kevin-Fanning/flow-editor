@@ -1,7 +1,7 @@
 {
-    "extends": "@tsconfig/node22/tsconfig.json",
-    "include": [
-        "eslint.config.ts",
-        "vite.config.ts"
-    ]
+	"extends": "@tsconfig/node22/tsconfig.json",
+	"include": [
+		"eslint.config.ts",
+		"vite.config.ts"
+	]
 }
