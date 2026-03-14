@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import FlowEditor, { type Node } from '../lib/FlowEditor.vue'
+import FlowEditor, { type Node } from '../lib/FlowEditor.vue';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
@@ -10,7 +10,7 @@ const nodes = ref<Node[]>([{
 	y: 10,
 	width: 100,
 	outputs: [{
-		name: "Begin",
+		name: 'Begin',
 		to: 1,
 	}],
 }, {
@@ -23,13 +23,13 @@ const nodes = ref<Node[]>([{
 	outputs: [{
 		name: 'Default',
 		to: 2,
-	},{
-		name: 'Dr. Jones'
+	}, {
+		name: 'Dr. Jones',
 	}, {
 		name: 'Fred Savage',
 	}, {
-		name: 'Robert Windham'
-	}]
+		name: 'Robert Windham',
+	}],
 }, {
 	nodeId: 2,
 	type: 'prompt',
