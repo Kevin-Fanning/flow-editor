@@ -4,7 +4,7 @@ import FlowEditor, { type Node } from '../lib/FlowEditor.vue';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
-	title: 'Start',
+	name: 'Start',
 	type: 'start',
 	x: 10,
 	y: 10,
@@ -15,7 +15,7 @@ const nodes = ref<Node[]>([{
 	}],
 }, {
 	nodeId: 1,
-	title: 'Provider Splitter',
+	name: 'Provider Splitter',
 	type: 'custom_outputs',
 	x: 200,
 	y: 100,
@@ -33,7 +33,7 @@ const nodes = ref<Node[]>([{
 }, {
 	nodeId: 2,
 	type: 'prompt',
-	title: 'Direct Referral',
+	name: 'Direct Referral',
 	prompt: 'Does the patient have a direct referral?',
 	x: 600,
 	y: 300,
@@ -47,7 +47,7 @@ const nodes = ref<Node[]>([{
 }, {
 	nodeId: 3,
 	type: 'exit',
-	title: 'DNP (Direct New Patient)',
+	name: 'DNP (Direct New Patient)',
 	x: 1000,
 	y: 300,
 	width: 300,
@@ -55,7 +55,7 @@ const nodes = ref<Node[]>([{
 }, {
 	nodeId: 4,
 	type: 'exit',
-	title: 'NP (New Patient)',
+	name: 'NP (New Patient)',
 	x: 1000,
 	y: 400,
 	width: 300,

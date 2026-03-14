@@ -53,7 +53,7 @@ const $props = withDefaults(defineProps<{
 	x: 0,
 	y: 0,
 	width: 200,
-	title: '',
+	name: '',
 	fill: '#222',
 	outputs: () => [],
 	selected: false,

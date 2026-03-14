@@ -33,8 +33,8 @@
 			:width="width - 20"
 			height="35"
 		>
-			<p :title="title">
-				{{ title }}
+			<p :title="name">
+				{{ name }}
 			</p>
 		</foreignObject>
 		<g
@@ -75,7 +75,7 @@ const $props = withDefaults(defineProps<{
 	x?: number;
 	y?: number;
 	width?: number;
-	title?: string;
+	name?: string;
 	fill?: string;
 	outputs?: { name: string }[];
 	selected?: boolean;
@@ -83,7 +83,7 @@ const $props = withDefaults(defineProps<{
 	x: 0,
 	y: 0,
 	width: 200,
-	title: '',
+	name: '',
 	fill: '#222',
 	outputs: () => [],
 	selected: false,

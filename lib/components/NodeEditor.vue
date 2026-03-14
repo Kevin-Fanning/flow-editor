@@ -86,7 +86,7 @@ const $props = withDefaults(defineProps<{
 	x?: number;
 	y?: number;
 	width?: number;
-	title?: string;
+	name?: string;
 	prompt?: string;
 	fill?: string;
 	outputs?: { name: string }[];
@@ -98,7 +98,7 @@ const $props = withDefaults(defineProps<{
 	x: 0,
 	y: 0,
 	width: 200,
-	title: '',
+	name: '',
 	prompt: '',
 	fill: '#222',
 	outputs: () => [],
@@ -112,7 +112,7 @@ const outputsEdit = ref<{ name: string; to?: number }[]>([]);
 const $emit = defineEmits(['close', 'update']);
 
 watch(() => $props.nodeId, () => {
-	titleEdit.value = $props.title;
+	titleEdit.value = $props.name;
 	promptEdit.value = $props.prompt;
 	outputsEdit.value = $props.outputs.slice();
 });

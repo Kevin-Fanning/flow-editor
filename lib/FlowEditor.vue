@@ -44,13 +44,17 @@
 					/>
 				</pattern>
 			</defs>
-			<g :style="`transform: scale(${scale})`">
+			<g
+				ref="scaleElement"
+				:style="`transform: translate(${offset.x}px,${offset.y}px) scale(${scale})`"
+			>
 				<rect
 					fill="url(#GridLayer)"
-					:width="`${100 * (1 / scale)}%`"
-					:height="`${100 * (1 / scale)}%`"
+					:width="`${scale <= 1 ? (100 * (1 / scale)) : 100}%`"
+					:height="`${scale <= 1 ? (100 * (1 / scale)) : 100}%`"
 					draggable
 					ref="gridElement"
+					:style="`transform: translate(${-offset.x*(1/scale)}px,${-offset.y*(1/scale)}px)`"
 					@mousedown="gridDragStart"
 				/>
 				<g
@@ -104,11 +108,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, useTemplateRef } from 'vue';
 
 import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
+
+const $scaleElement = useTemplateRef<SVGGElement>('scaleElement');
 
 const $props = withDefaults(defineProps<{
 	gridSize?: number;
@@ -136,7 +142,7 @@ let startScrollY = 0;
 
 export interface Node {
 	nodeId: number;
-	title: string;
+	name: string;
 	type: string;
 	x: number;
 	y: number;
@@ -284,9 +290,27 @@ function dragEnd() {
 	}
 }
 
+const offset = ref({
+	x: 0,
+	y: 0,
+});
+
 function magnify(evt: WheelEvent) {
+	const mouseX = evt.clientX - ($scaleElement.value?.getBoundingClientRect().left || 0);
+	const mouseY = evt.clientY - ($scaleElement.value?.getBoundingClientRect().top || 0);
+
+	const worldXBefore = (mouseX - offset.value.x) / scale.value;
+	const worldYBefore = (mouseY - offset.value.y) / scale.value;
+
 	scale.value += Math.sign(evt.deltaY) * -0.25;
 	scale.value = Math.min(Math.max(0.5, scale.value), 2);
+
+	const worldXAfter = worldXBefore * scale.value;
+	const worldYAfter = worldYBefore * scale.value;
+
+	offset.value = { x: mouseX - worldXAfter, y: mouseY - worldYAfter };
+
+	console.log(`transform: translate(${-Math.round(offset.value.x * (1 / scale.value))}px,${-Math.round(offset.value.y * (1 / scale.value))}px)`);
 }
 </script>
 
