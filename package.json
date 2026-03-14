@@ -11,7 +11,8 @@
     "serve": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "peerDependencies": {
     "vue": "^3.4.21"

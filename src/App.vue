@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import FlowEditor, { type Node } from '../lib/FlowEditor.vue';
+import type { NodeType } from '../lib/types';
+import ClinicalTermsNode from './ClinicalTermsNode.vue';
+import AddAppointmentNote from './AddAppointmentNote.vue';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
@@ -10,43 +13,50 @@ const nodes = ref<Node[]>([{
 	y: 10,
 	width: 100,
 	outputs: [{
-		name: 'Begin',
+		name: 'Start',
+		value: 'start',
 		to: 1,
 	}],
 }, {
 	nodeId: 1,
-	name: 'Provider Splitter',
-	type: 'custom_outputs',
+	name: 'Clinical Terms',
+	type: 'clinical_terms',
 	x: 200,
 	y: 100,
 	width: 300,
 	outputs: [{
 		name: 'Default',
+		value: 'default',
 		to: 2,
 	}, {
-		name: 'Dr. Jones',
+		name: 'Knee Pain',
+		value: 1,
 	}, {
-		name: 'Fred Savage',
+		name: 'Arm Pain',
+		value: 2,
 	}, {
-		name: 'Robert Windham',
+		name: 'Foot Pain',
+		value: 3,
 	}],
 }, {
 	nodeId: 2,
-	type: 'prompt',
+	type: 'direct_referral',
 	name: 'Direct Referral',
 	prompt: 'Does the patient have a direct referral?',
 	x: 600,
 	y: 300,
 	outputs: [{
 		name: 'Yes',
+		value: 'yes',
 		to: 3,
 	}, {
 		name: 'No',
+		value: 'no',
 		to: 4,
 	}],
 }, {
 	nodeId: 3,
-	type: 'exit',
+	type: 'quit',
 	name: 'DNP (Direct New Patient)',
 	x: 1000,
 	y: 300,
@@ -54,18 +64,56 @@ const nodes = ref<Node[]>([{
 	outputs: [],
 }, {
 	nodeId: 4,
-	type: 'exit',
+	type: 'quit',
 	name: 'NP (New Patient)',
 	x: 1000,
 	y: 400,
 	width: 300,
 	outputs: [],
 }]);
+
+const nodeTypes: NodeType[] = [{
+	name: 'Start',
+	type: 'start',
+	lockedOutputs: true,
+	outputs: [{
+		name: 'Start',
+		value: 'start',
+	}],
+}, {
+	name: 'Quit',
+	type: 'quit',
+	lockedOutputs: true,
+	outputs: [],
+}, {
+	name: 'Direct Referral',
+	type: 'direct_referral',
+	lockedOutputs: true,
+	outputs: [{
+		name: 'Yes',
+		value: 'yes',
+	}, {
+		name: 'No',
+		value: 'no',
+	}],
+}, {
+	name: 'Clinical Terms',
+	type: 'clinical_terms',
+	outputs: [{
+		name: 'Default',
+		value: 'default',
+	}],
+	nodeEditComponent: AddAppointmentNote,
+	outputCreateComponent: ClinicalTermsNode,
+}];
 </script>
 
 <template>
 	<div class="wrapper">
-		<FlowEditor v-model:nodes="nodes" />
+		<FlowEditor
+			v-model:nodes="nodes"
+			:node-types="nodeTypes"
+		/>
 	</div>
 </template>
 

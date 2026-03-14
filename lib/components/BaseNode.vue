@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { NodeType } from '../types.ts';
 defineEmits(['select', 'select-output']);
 
 const $props = withDefaults(defineProps<{
@@ -79,6 +80,7 @@ const $props = withDefaults(defineProps<{
 	fill?: string;
 	outputs?: { name: string }[];
 	selected?: boolean;
+	nodeType?: NodeType | null;
 }>(), {
 	x: 0,
 	y: 0,
@@ -87,6 +89,7 @@ const $props = withDefaults(defineProps<{
 	fill: '#222',
 	outputs: () => [],
 	selected: false,
+	nodeType: null,
 });
 
 const height = computed(() => $props.outputs.length * 35 + 60);

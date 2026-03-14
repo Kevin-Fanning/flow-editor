@@ -15,20 +15,13 @@
 					>
 				</label>
 			</fieldset>
-			<template v-if="type === 'prompt'">
-				<fieldset>
-					<label>
-						Prompt
-						<textarea
-							name="prompt"
-							placeholder="Prompt"
-							autocomplete="off"
-							v-model="promptEdit"
-						/>
-					</label>
-				</fieldset>
-			</template>
-			<template v-if="type === 'custom_outputs'">
+			<component
+				v-if="nodeType?.nodeEditComponent"
+				:is="nodeType?.nodeEditComponent"
+				:meta="metaEdit"
+				@update:meta="updateMeta"
+			/>
+			<template v-if="!nodeType?.lockedOutputs || outputs.length > 0">
 				<label>Outputs:</label>
 				<fieldset
 					role="group"
@@ -40,11 +33,13 @@
 						placeholder="Output Name"
 						autocomplete="off"
 						v-model="output.name"
+						:disabled="nodeType?.lockedOutputs || output.value === 'default'"
 					>
 					<button
 						class="pico-background-red-450"
 						type="button"
 						@click="outputsEdit.splice(i, 1)"
+						v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
 					>
 						X
 					</button>
@@ -52,10 +47,17 @@
 				<button
 					class="pico-background-green-450"
 					type="button"
-					@click="outputsEdit.push({ name: '' })"
+					@click="outputsEdit.push({ name: '', value: 0 })"
+					v-if="!nodeType?.lockedOutputs && !nodeType?.outputCreateComponent"
 				>
 					Add Output
 				</button>
+				<component
+					v-else-if="nodeType?.outputCreateComponent"
+					:is="nodeType?.outputCreateComponent"
+					:existing="outputsEdit"
+					@update:model-value="outputsEdit.push($event)"
+				/>
 			</template>
 		</form>
 		<div class="grid">
@@ -78,6 +80,7 @@
 
 <script setup lang="ts">
 import { watch, ref } from 'vue';
+import type { NodeType } from '../types';
 
 const $props = withDefaults(defineProps<{
 	active?: boolean;
@@ -89,8 +92,10 @@ const $props = withDefaults(defineProps<{
 	name?: string;
 	prompt?: string;
 	fill?: string;
-	outputs?: { name: string }[];
+	outputs?: { name: string; value: string | number | boolean; to?: number }[];
+	meta?: Record<string, unknown> | null;
 	selected?: boolean;
+	nodeType?: NodeType | null;
 }>(), {
 	active: false,
 	nodeId: undefined,
@@ -103,11 +108,14 @@ const $props = withDefaults(defineProps<{
 	fill: '#222',
 	outputs: () => [],
 	selected: false,
+	nodeType: null,
+	meta: () => ({}),
 });
 
 const titleEdit = ref('');
 const promptEdit = ref('');
-const outputsEdit = ref<{ name: string; to?: number }[]>([]);
+const outputsEdit = ref<{ name: string; value: string | number | boolean; to?: number }[]>([]);
+const metaEdit = ref<Record<string, unknown>>({});
 
 const $emit = defineEmits(['close', 'update']);
 
@@ -115,7 +123,12 @@ watch(() => $props.nodeId, () => {
 	titleEdit.value = $props.name;
 	promptEdit.value = $props.prompt;
 	outputsEdit.value = $props.outputs.slice();
+	metaEdit.value = $props.meta || {};
 });
+
+function updateMeta(meta: Record<string, unknown>) {
+	metaEdit.value = meta;
+}
 
 function save() {
 	$emit('update', {
@@ -123,6 +136,7 @@ function save() {
 		title: titleEdit.value,
 		prompt: promptEdit.value,
 		outputs: outputsEdit.value,
+		meta: metaEdit.value,
 	});
 	$emit('close');
 }
@@ -131,3 +145,10 @@ function close() {
 	$emit('close');
 }
 </script>
+
+<style scoped>
+.node-editor {
+	max-height: 100%;
+	overflow: auto;
+}
+</style>

@@ -73,6 +73,7 @@
 						<BaseNode
 							v-else
 							v-bind="node"
+							:node-type="nodeTypes.find(type => type.type === node.type) ?? null"
 							@select="selectNode"
 							@mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
 						/>
@@ -100,6 +101,7 @@
 		>
 			<NodeEditor
 				v-bind="selected"
+				:node-type="nodeTypes.find(type => type.type === selected?.type) ?? null"
 				@close="closeNode"
 				@update="updateNode"
 			/>
@@ -113,15 +115,18 @@ import { computed, ref, onMounted, useTemplateRef } from 'vue';
 import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
+import type { NodeType } from './types';
 
 const $scaleElement = useTemplateRef<SVGGElement>('scaleElement');
 
 const $props = withDefaults(defineProps<{
 	gridSize?: number;
 	nodes: Node[];
+	nodeTypes: NodeType[];
 }>(), {
 	gridSize: 50,
 	nodes: () => [],
+	nodeTypes: () => [],
 });
 
 const $emit = defineEmits(['update:node']);
@@ -147,9 +152,10 @@ export interface Node {
 	x: number;
 	y: number;
 	width?: number;
-	outputs: { name: string; to?: number }[];
+	outputs: { name: string; value: string | number | boolean; to?: number }[];
 	selected?: boolean;
 	prompt?: string;
+	meta?: Record<string, unknown> | null;
 }
 
 const selected = computed(() => {
