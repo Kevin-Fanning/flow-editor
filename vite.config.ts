@@ -9,13 +9,19 @@ import dev from 'vite-plugin-vue-devtools';
 export default defineConfig({
 	plugins: [
 		vue(),
-		dts(),
+		dts({
+			include: [
+				'./lib/**/*.vue',
+				'./lib/**/*.ts',
+			],
+			tsconfigPath: './tsconfig.app.json',
+		}),
 		dev(),
 	],
 	build: {
 		lib: {
 			entry: './lib/main.ts',
-			fileName: 'index',
+			fileName: 'main',
 			formats: ['es'],
 		},
 		rollupOptions: {

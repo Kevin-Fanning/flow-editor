@@ -25,6 +25,8 @@
 			r="10"
 			stroke-width="3"
 			fill="#444"
+			@mouseenter="$emit('mouseenter:input', nodeId)"
+			@mouseleave="$emit('mouseleave:input', nodeId)"
 		/>
 		<foreignObject
 			class="node-title"
@@ -69,7 +71,7 @@
 				</p>
 			</foreignObject>
 			<circle
-				@click.prevent.stop="$emit('select-output', { nodeId, outputIndex: i })"
+				@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output })"
 				class="output-port"
 				:cx="width"
 				:cy="63 + (metaKeys.length * 35) + (i * 35)"
@@ -83,8 +85,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { NodeType } from '../types.ts';
-defineEmits(['select', 'select-output']);
+import type { NodeType, Output } from '../types.ts';
+defineEmits(['select', 'mousedown:output', 'mouseenter:input', 'mouseleave:input']);
 
 const $props = withDefaults(defineProps<{
 	nodeId: number;
@@ -95,7 +97,7 @@ const $props = withDefaults(defineProps<{
 	name?: string;
 	fill?: string;
 	meta?: Record<string, unknown> | null;
-	outputs?: { name: string }[];
+	outputs?: Output[];
 	selected?: boolean;
 	nodeType?: NodeType | null;
 }>(), {

@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { watch, ref } from 'vue';
-import type { NodeType } from '../types';
+import type { NodeType, Output } from '../types';
 
 const $props = withDefaults(defineProps<{
 	active?: boolean;
@@ -103,7 +103,7 @@ const $props = withDefaults(defineProps<{
 	name?: string;
 	prompt?: string;
 	fill?: string;
-	outputs?: { name: string; value: string | number | boolean; to?: number }[];
+	outputs?: Output[];
 	meta?: Record<string, unknown> | null;
 	selected?: boolean;
 	nodeType?: NodeType | null;
@@ -125,7 +125,7 @@ const $props = withDefaults(defineProps<{
 
 const titleEdit = ref('');
 const promptEdit = ref('');
-const outputsEdit = ref<{ name: string; value: string | number | boolean; to?: number }[]>([]);
+const outputsEdit = ref<Output[]>([]);
 const metaEdit = ref<Record<string, unknown>>({});
 
 const $emit = defineEmits(['close', 'update']);

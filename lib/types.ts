@@ -1,5 +1,22 @@
 import type { Component } from 'vue';
 
+export interface Output {
+	name: string;
+	value: string | number | boolean;
+	to?: number;
+}
+export interface Node {
+	nodeId: number;
+	name: string;
+	type: string;
+	x: number;
+	y: number;
+	width?: number;
+	outputs: Output[];
+	prompt?: string;
+	meta?: Record<string, unknown> | null;
+}
+
 export interface NodeType {
 	// Display name of type. If not supplied, uses type
 	name?: string;

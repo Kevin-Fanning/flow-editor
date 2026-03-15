@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import FlowEditor, { type Node } from '../lib/FlowEditor.vue';
-import type { NodeType } from '../lib/types';
+import FlowEditor, { type Node, type NodeType } from '../lib/main';
 import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
 import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
 import AddAppointmentNote from './AddAppointmentNote.vue';

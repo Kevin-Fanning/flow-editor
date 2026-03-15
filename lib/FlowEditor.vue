@@ -4,6 +4,8 @@
 		@mouseup="dragEnd"
 		@mouseleave="dragEnd"
 		@mousemove="dragging"
+		@click:right.prevent.stop="() => {}"
+		@contextmenu.prevent.stop="() => {}"
 	>
 		<svg
 			:width="selected ? 'calc(100% - 500px)' : '100%'"
@@ -69,6 +71,7 @@
 						<StartNode
 							v-if="node.type === 'start'"
 							v-bind="node"
+							@mousedown:output="outputDragStart"
 						/>
 						<BaseNode
 							v-else
@@ -77,6 +80,9 @@
 							:selected="selectedId === node.nodeId"
 							@select="selectNode"
 							@mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
+							@mousedown:output="outputDragStart"
+							@mouseenter:input="inputEnter"
+							@mouseleave:input="inputLeave"
 							@update="updateNode"
 						/>
 					</template>
@@ -84,6 +90,7 @@
 						class="edge-line"
 						v-for="edge in edges"
 						:key="edge.idx"
+						@contextmenu.prevent.stop="removeEdge(edge)"
 					>
 						<path
 							class="hover-target"
@@ -94,20 +101,26 @@
 							:d="edge.d"
 						/>
 					</g>
+					<g
+						class="edge-line"
+						v-if="draggingOutput"
+					>
+						<path
+							class="visible"
+							style="pointer-events: none;"
+							:d="draggingOutputPath"
+						/>
+					</g>
 				</g>
 			</g>
 		</svg>
-		<div
+		<NodeEditor
 			v-show="selected"
-			class="node-editor"
-		>
-			<NodeEditor
-				v-bind="selected"
-				:node-type="nodeTypes.find(type => type.type === selected?.type) ?? null"
-				@close="closeNode"
-				@update="updateNode"
-			/>
-		</div>
+			v-bind="selected"
+			:node-type="nodeTypes.find(type => type.type === selected?.type) ?? null"
+			@close="closeNode"
+			@update="updateNode"
+		/>
 	</div>
 </template>
 
@@ -117,7 +130,7 @@ import { computed, ref, onMounted, useTemplateRef } from 'vue';
 import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
-import type { NodeType } from './types';
+import type { Node, Output, NodeType } from './types';
 
 import '@picocss/pico/scss/pico.conditional.scss';
 import '@picocss/pico/scss/pico.colors.scss';
@@ -139,7 +152,7 @@ const $emit = defineEmits(['update:node', 'update:nodes']);
 const selectedId = ref<number | null>(null);
 const scrollX = ref(25);
 const scrollY = ref(0);
-const scale = ref(1);
+const scale = ref(0.5);
 const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % $props.gridSize : ($props.gridSize + (scrollX.value % $props.gridSize)));
 const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSize : ($props.gridSize + (scrollY.value % $props.gridSize)));
 
@@ -159,23 +172,14 @@ const sortedNodes = computed(() => {
 
 let isDraggingGrid = false;
 let draggingNode: null | Node = null;
+const draggingOutput = ref<null | (Output & { nodeId: number })>(null);
+const dragOutputEnd = ref({ x: 0, y: 0 });
+const hoveredInput = ref<null | number>(null);
 let didNodeDrag = false;
 let dragXStart = 0;
 let dragYStart = 0;
 let startScrollX = 0;
 let startScrollY = 0;
-
-export interface Node {
-	nodeId: number;
-	name: string;
-	type: string;
-	x: number;
-	y: number;
-	width?: number;
-	outputs: { name: string; value: string | number | boolean; to?: number }[];
-	prompt?: string;
-	meta?: Record<string, unknown> | null;
-}
 
 const selected = computed(() => {
 	return $props.nodes.find(node => node.nodeId === selectedId.value);
@@ -206,6 +210,9 @@ interface Edge {
 	y1: number;
 	y2: number;
 	d?: string;
+	nodeId: number;
+	from: Output;
+	to: Node;
 }
 
 const edges = computed(() => {
@@ -224,10 +231,13 @@ const edges = computed(() => {
 					const inputStart = 30;
 					const edge: Edge = {
 						idx: i,
-						x1: node.x + (node.width || 200),
+						x1: node.x + (node.width || 200) + 12,
 						y1: node.y + metaHeight + outputStart + (i * outputHeight),
-						x2: other.x,
+						x2: other.x - 12,
 						y2: other.y + inputStart,
+						nodeId: node.nodeId,
+						from: output,
+						to: other,
 					};
 					const distance = Math.max((edge.x2 - edge.x1) / 2, 50);
 					edge.d = `M${edge.x1} ${edge.y1} C ${edge.x1 + distance} ${edge.y1}, ${edge.x2 - distance} ${edge.y2}, ${edge.x2} ${edge.y2}`;
@@ -237,6 +247,39 @@ const edges = computed(() => {
 		});
 	});
 	return total;
+});
+
+function removeEdge(edge: Edge) {
+	const owner = $props.nodes.find(n => n.nodeId === edge.nodeId);
+	if (!owner) {
+		return;
+	}
+	$emit('update:node', {
+		...owner,
+		outputs: owner.outputs.map(out => ({
+			...out,
+			to: out.name === edge.from.name ? null : out.to,
+		})),
+	});
+}
+
+const draggingOutputPath = computed(() => {
+	if (!draggingOutput.value) {
+		return '';
+	}
+	const node = $props.nodes.find(n => n.nodeId === draggingOutput.value!.nodeId);
+	if (!node) {
+		return '';
+	}
+	const edge = {
+		idx: 0,
+		x1: dragXStart,
+		y1: dragYStart,
+		x2: dragOutputEnd.value.x,
+		y2: dragOutputEnd.value.y,
+	};
+	const distance = (edge.x2 - edge.x1) / 2;
+	return `M${edge.x1} ${edge.y1} C ${edge.x1 + distance} ${edge.y1}, ${edge.x2 - distance} ${edge.y2}, ${edge.x2} ${edge.y2}`;
 });
 
 onMounted(() => {
@@ -268,6 +311,24 @@ function nodeDragStart(evt: MouseEvent, node: Node) {
 	}));
 }
 
+function outputDragStart({ event, nodeId, output }: { event: MouseEvent; nodeId: number; output: Output }) {
+	draggingOutput.value = { ...output, nodeId };
+	dragXStart = (event.clientX - offset.value.x) * (1 / scale.value) - scrollX.value;
+	dragYStart = (event.clientY - offset.value.y) * (1 / scale.value) - scrollY.value;
+	dragOutputEnd.value.x = dragXStart;
+	dragOutputEnd.value.y = dragYStart;
+}
+
+function inputEnter(nodeId: number) {
+	hoveredInput.value = nodeId;
+}
+
+function inputLeave(nodeId: number) {
+	if (hoveredInput.value === nodeId) {
+		hoveredInput.value = null;
+	}
+}
+
 function dragging(evt: MouseEvent) {
 	if (isDraggingGrid) {
 		scrollX.value = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
@@ -276,6 +337,10 @@ function dragging(evt: MouseEvent) {
 	if (draggingNode) {
 		draggingNode.x = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
 		draggingNode.y = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
+	}
+	if (draggingOutput.value) {
+		dragOutputEnd.value.x = (evt.clientX - offset.value.x) * (1 / scale.value) - scrollX.value;
+		dragOutputEnd.value.y = (evt.clientY - offset.value.y) * (1 / scale.value) - scrollY.value;
 	}
 }
 
@@ -294,6 +359,23 @@ function dragEnd() {
 		}
 		didNodeDrag = startScrollX !== draggingNode.x || startScrollY !== draggingNode.y;
 		draggingNode = null;
+	}
+	if (draggingOutput.value) {
+		if (hoveredInput.value) {
+			const node = $props.nodes.find(n => n.nodeId === draggingOutput.value!.nodeId);
+			if (!node) {
+				draggingOutput.value = null;
+				return;
+			}
+			$emit('update:node', {
+				...node,
+				outputs: node.outputs.map(output => ({
+					...output,
+					to: output.name === draggingOutput.value!.name ? hoveredInput.value : output.to,
+				})),
+			});
+		}
+		draggingOutput.value = null;
 	}
 }
 
@@ -316,8 +398,6 @@ function magnify(evt: WheelEvent) {
 	const worldYAfter = worldYBefore * scale.value;
 
 	offset.value = { x: mouseX - worldXAfter, y: mouseY - worldYAfter };
-
-	console.log(`transform: translate(${-Math.round(offset.value.x * (1 / scale.value))}px,${-Math.round(offset.value.y * (1 / scale.value))}px)`);
 }
 </script>
 
@@ -325,6 +405,8 @@ function magnify(evt: WheelEvent) {
 .flow-editor {
 	width: 100%;
 	height: 100%;
+	// font-family: Verdana, Helvetica, sans-serif;
+	// font-size: 20px;
 
 	.edge-line {
 		cursor: pointer;
@@ -362,7 +444,7 @@ function magnify(evt: WheelEvent) {
 				stroke-width: 5;
 			}
 		}
-		.node-title p {
+		.node-title p, .node-meta-name p {
 			user-select: none;
 			font-size: 1.1em;
 			color: #E9E9E9;
@@ -371,6 +453,9 @@ function magnify(evt: WheelEvent) {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			margin: 0;
+		}
+		.node-meta-name p {
+			font-style: italic;
 		}
 		.node-output-name p {
 			user-select: none;
@@ -390,6 +475,7 @@ function magnify(evt: WheelEvent) {
 		height: 100%;
 		width: 500px;
 		padding: 20px;
+		overflow: auto;
 	}
 }
 </style>

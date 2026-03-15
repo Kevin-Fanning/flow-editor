@@ -25,7 +25,7 @@
 			<p>Start</p>
 		</foreignObject>
 		<circle
-			@click.prevent.stop="$emit('select-output', { nodeId, outputIndex: 0 })"
+			@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output: outputs[0] })"
 			class="output-port"
 			:cx="width"
 			:cy="28"
@@ -38,7 +38,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-defineEmits(['select-output']);
+import type { Output } from '../types';
+defineEmits(['mousedown:output']);
 
 const $props = withDefaults(defineProps<{
 	nodeId: number;
@@ -47,7 +48,7 @@ const $props = withDefaults(defineProps<{
 	y?: number;
 	width?: number;
 	fill?: string;
-	outputs?: { name: string }[];
+	outputs?: Output[];
 	selected?: boolean;
 }>(), {
 	x: 0,
