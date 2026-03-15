@@ -23,29 +23,40 @@
 			/>
 			<template v-if="!nodeType?.lockedOutputs || outputs.length > 0">
 				<label>Outputs:</label>
-				<fieldset
-					role="group"
+				<template
 					v-for="(output, i) in outputsEdit"
 					:key="i"
 				>
-					<input
-						name="output"
-						placeholder="Output Name"
-						autocomplete="off"
-						v-model="output.name"
-						:disabled="nodeType?.lockedOutputs || output.value === 'default'"
+					<component
+						v-if="nodeType?.outputEditComponent && output.value !== 'default'"
+						:is="nodeType.outputEditComponent"
+						:model-value="output"
+						@update:model-value="outputsEdit[i] = $event"
+						@delete="outputsEdit.splice(i, 1)"
+					/>
+					<fieldset
+						role="group"
+						v-else
 					>
-					<button
-						class="pico-background-red-450"
-						type="button"
-						@click="outputsEdit.splice(i, 1)"
-						v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
-					>
-						X
-					</button>
-				</fieldset>
+						<input
+							name="output"
+							placeholder="Output Name"
+							autocomplete="off"
+							v-model="output.name"
+							:disabled="nodeType?.lockedOutputs || output.value === 'default'"
+						>
+						<button
+							style="background-color: var(--pico-color-red-450)"
+							type="button"
+							@click="outputsEdit.splice(i, 1)"
+							v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
+						>
+							X
+						</button>
+					</fieldset>
+				</template>
 				<button
-					class="pico-background-green-450"
+					style="background-color: var(--pico-color-green-450)"
 					type="button"
 					@click="outputsEdit.push({ name: '', value: 0 })"
 					v-if="!nodeType?.lockedOutputs && !nodeType?.outputCreateComponent"

@@ -9,15 +9,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const $props = defineProps<{
-	meta: Record<string, unknown>;
+	meta: {
+		appointmentNote?: string;
+	};
 }>();
 
 const $emit = defineEmits(['update:meta']);
 
-const modelValue = ref(($props.meta?.appointmentNote as string) || '');
+const modelValue = ref($props.meta?.appointmentNote || '');
+
+watch(() => $props.meta?.appointmentNote, (val) => {
+	modelValue.value = val || '';
+});
 
 function updateAppointmentNote(val: string) {
 	$emit('update:meta', { ...$props.meta, appointmentNote: val });

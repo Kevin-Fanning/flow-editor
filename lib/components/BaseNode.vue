@@ -38,13 +38,29 @@
 			</p>
 		</foreignObject>
 		<g
+			v-for="(key, i) in metaKeys"
+			:key="key"
+		>
+			<foreignObject
+				class="node-meta-name"
+				x="25"
+				:y="45 + (i * 35)"
+				:width="width - 25"
+				height="30"
+			>
+				<p :title="`${meta?.[key]}`">
+					{{ key }}
+				</p>
+			</foreignObject>
+		</g>
+		<g
 			v-for="(output, i) in outputs"
 			:key="i"
 		>
 			<foreignObject
 				class="node-output-name"
 				x="5"
-				:y="45 + (i * 35)"
+				:y="45 + (metaKeys.length * 35) + (i * 35)"
 				:width="width - 25"
 				height="30"
 			>
@@ -56,7 +72,7 @@
 				@click.prevent.stop="$emit('select-output', { nodeId, outputIndex: i })"
 				class="output-port"
 				:cx="width"
-				:cy="63 + (i * 35)"
+				:cy="63 + (metaKeys.length * 35) + (i * 35)"
 				r="10"
 				stroke-width="3"
 				fill="#444"
@@ -78,6 +94,7 @@ const $props = withDefaults(defineProps<{
 	width?: number;
 	name?: string;
 	fill?: string;
+	meta?: Record<string, unknown> | null;
 	outputs?: { name: string }[];
 	selected?: boolean;
 	nodeType?: NodeType | null;
@@ -90,7 +107,10 @@ const $props = withDefaults(defineProps<{
 	outputs: () => [],
 	selected: false,
 	nodeType: null,
+	meta: null,
 });
 
-const height = computed(() => $props.outputs.length * 35 + 60);
+const metaKeys = computed(() => Object.keys($props.meta || {}));
+
+const height = computed(() => ($props.outputs.length * 35) + (metaKeys.value.length * 35) + 60);
 </script>

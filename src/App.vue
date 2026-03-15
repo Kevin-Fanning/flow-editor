@@ -2,7 +2,8 @@
 import { ref } from 'vue';
 import FlowEditor, { type Node } from '../lib/FlowEditor.vue';
 import type { NodeType } from '../lib/types';
-import ClinicalTermsNode from './ClinicalTermsNode.vue';
+import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
+import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
 import AddAppointmentNote from './AddAppointmentNote.vue';
 
 const nodes = ref<Node[]>([{
@@ -70,6 +71,17 @@ const nodes = ref<Node[]>([{
 	y: 400,
 	width: 300,
 	outputs: [],
+}, {
+	nodeId: 5,
+	type: 'clinical_terms',
+	name: 'Clinical Terms 2',
+	x: 1000,
+	y: 600,
+	width: 300,
+	outputs: [],
+	meta: {
+		appointmentNote: 'asdf',
+	},
 }]);
 
 const nodeTypes: NodeType[] = [{
@@ -104,8 +116,16 @@ const nodeTypes: NodeType[] = [{
 		value: 'default',
 	}],
 	nodeEditComponent: AddAppointmentNote,
-	outputCreateComponent: ClinicalTermsNode,
+	outputCreateComponent: CreateClinicalTermsOutput,
+	outputEditComponent: EditClinicalTermsOutput,
 }];
+
+function updateNode(node: Node) {
+	const idx = nodes.value.findIndex(other => other.nodeId === node.nodeId);
+	if (idx !== -1) {
+		nodes.value.splice(idx, 1, node);
+	}
+}
 </script>
 
 <template>
@@ -113,6 +133,7 @@ const nodeTypes: NodeType[] = [{
 		<FlowEditor
 			v-model:nodes="nodes"
 			:node-types="nodeTypes"
+			@update:node="updateNode"
 		/>
 	</div>
 </template>

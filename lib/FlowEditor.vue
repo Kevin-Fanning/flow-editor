@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flow-editor"
+		class="flow-editor pico"
 		@mouseup="dragEnd"
 		@mouseleave="dragEnd"
 		@mousemove="dragging"
@@ -63,7 +63,7 @@
 					}"
 				>
 					<template
-						v-for="node in nodes"
+						v-for="node in sortedNodes"
 						:key="node.nodeId"
 					>
 						<StartNode
@@ -74,8 +74,10 @@
 							v-else
 							v-bind="node"
 							:node-type="nodeTypes.find(type => type.type === node.type) ?? null"
+							:selected="selectedId === node.nodeId"
 							@select="selectNode"
 							@mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
+							@update="updateNode"
 						/>
 					</template>
 					<g
@@ -117,6 +119,9 @@ import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
 import type { NodeType } from './types';
 
+import '@picocss/pico/scss/pico.conditional.scss';
+import '@picocss/pico/scss/pico.colors.scss';
+
 const $scaleElement = useTemplateRef<SVGGElement>('scaleElement');
 
 const $props = withDefaults(defineProps<{
@@ -129,13 +134,28 @@ const $props = withDefaults(defineProps<{
 	nodeTypes: () => [],
 });
 
-const $emit = defineEmits(['update:node']);
+const $emit = defineEmits(['update:node', 'update:nodes']);
 
+const selectedId = ref<number | null>(null);
 const scrollX = ref(25);
 const scrollY = ref(0);
 const scale = ref(1);
 const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % $props.gridSize : ($props.gridSize + (scrollX.value % $props.gridSize)));
 const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSize : ($props.gridSize + (scrollY.value % $props.gridSize)));
+
+const sortedNodes = computed(() => {
+	const list = $props.nodes.slice();
+	list.sort((a, b) => {
+		if (a.nodeId === selectedId.value) {
+			return 1;
+		}
+		if (b.nodeId === selectedId.value) {
+			return -1;
+		}
+		return 0;
+	});
+	return list;
+});
 
 let isDraggingGrid = false;
 let draggingNode: null | Node = null;
@@ -153,13 +173,12 @@ export interface Node {
 	y: number;
 	width?: number;
 	outputs: { name: string; value: string | number | boolean; to?: number }[];
-	selected?: boolean;
 	prompt?: string;
 	meta?: Record<string, unknown> | null;
 }
 
 const selected = computed(() => {
-	return $props.nodes.find(node => node.selected);
+	return $props.nodes.find(node => node.nodeId === selectedId.value);
 });
 
 function selectNode(nodeId: number) {
@@ -167,36 +186,17 @@ function selectNode(nodeId: number) {
 		didNodeDrag = false;
 		return;
 	}
-	$props.nodes.forEach((node) => {
-		if (node.nodeId === nodeId) {
-			node.selected = true;
-		}
-		else {
-			node.selected = false;
-		}
-	});
-	$emit('update:node', $props.nodes.slice().sort((a, b) => {
-		if (a.selected) {
-			return 1;
-		}
-		if (b.selected) {
-			return -1;
-		}
-		return 0;
-	}));
+	selectedId.value = nodeId;
 }
 
 function updateNode(props: Partial<Node>) {
 	if (selected.value) {
-		Object.assign(selected.value, props);
+		$emit('update:node', { ...selected.value, ...props });
 	}
 }
 
 function closeNode() {
-	const selected = $props.nodes.find(node => node.selected);
-	if (selected) {
-		selected.selected = false;
-	}
+	selectedId.value = null;
 }
 
 interface Edge {
@@ -219,12 +219,13 @@ const edges = computed(() => {
 					if (node.type === 'start') {
 						outputStart = 28;
 					}
+					const metaHeight = Object.keys(node?.meta || {}).length * 35;
 					const outputHeight = 35;
 					const inputStart = 30;
 					const edge: Edge = {
 						idx: i,
 						x1: node.x + (node.width || 200),
-						y1: node.y + outputStart + (i * outputHeight),
+						y1: node.y + metaHeight + outputStart + (i * outputHeight),
 						x2: other.x,
 						y2: other.y + inputStart,
 					};
