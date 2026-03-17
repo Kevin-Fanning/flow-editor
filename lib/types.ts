@@ -29,6 +29,8 @@ export interface NodeType {
 		// Extra data to add onto an output
 		meta?: Record<string, unknown>;
 	}[];
+	// Change the fill color of this block
+	fill?: string;
 	// If true, outputs are not editable
 	lockedOutputs?: boolean;
 	// Custom editor for an output. For editing metadata or values

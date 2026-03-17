@@ -71,11 +71,14 @@
 						<StartNode
 							v-if="node.type === 'start'"
 							v-bind="node"
+							:fill="nodeTypes.find(type => type.type === 'start')?.fill"
 							@mousedown:output="outputDragStart"
 						/>
 						<BaseNode
 							v-else
 							v-bind="node"
+							:x="draggingNode?.nodeId === node.nodeId ? draggingNodePosition.x : node.x"
+							:y="draggingNode?.nodeId === node.nodeId ? draggingNodePosition.y : node.y"
 							:node-type="nodeTypes.find(type => type.type === node.type) ?? null"
 							:selected="selectedId === node.nodeId"
 							@select="selectNode"
@@ -159,6 +162,12 @@ const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSiz
 const sortedNodes = computed(() => {
 	const list = $props.nodes.slice();
 	list.sort((a, b) => {
+		if (a.nodeId === draggingNode.value?.nodeId) {
+			return 1;
+		}
+		if (b.nodeId === draggingNode.value?.nodeId) {
+			return -1;
+		}
 		if (a.nodeId === selectedId.value) {
 			return 1;
 		}
@@ -171,7 +180,8 @@ const sortedNodes = computed(() => {
 });
 
 let isDraggingGrid = false;
-let draggingNode: null | Node = null;
+const draggingNode = ref<null | Node>(null);
+const draggingNodePosition = ref({ x: 0, y: 0 });
 const draggingOutput = ref<null | (Output & { nodeId: number })>(null);
 const dragOutputEnd = ref({ x: 0, y: 0 });
 const hoveredInput = ref<null | number>(null);
@@ -226,15 +236,20 @@ const edges = computed(() => {
 					if (node.type === 'start') {
 						outputStart = 28;
 					}
+					let otherPosition: { x: number; y: number } = other;
+					if (other.nodeId === draggingNode.value?.nodeId) {
+						otherPosition = draggingNodePosition.value;
+					}
 					const metaHeight = Object.keys(node?.meta || {}).length * 35;
 					const outputHeight = 35;
 					const inputStart = 30;
+					const position: { x: number; y: number } = (node.nodeId === draggingNode.value?.nodeId) ? draggingNodePosition.value : node;
 					const edge: Edge = {
 						idx: i,
-						x1: node.x + (node.width || 200) + 12,
-						y1: node.y + metaHeight + outputStart + (i * outputHeight),
-						x2: other.x - 12,
-						y2: other.y + inputStart,
+						x1: position.x + (node.width || 200) + 12,
+						y1: position.y + metaHeight + outputStart + (i * outputHeight),
+						x2: otherPosition.x - 12,
+						y2: otherPosition.y + inputStart,
 						nodeId: node.nodeId,
 						from: output,
 						to: other,
@@ -294,12 +309,14 @@ function gridDragStart(evt: MouseEvent) {
 }
 
 function nodeDragStart(evt: MouseEvent, node: Node) {
-	draggingNode = node;
+	draggingNode.value = node;
 	didNodeDrag = false;
 	dragXStart = evt.clientX;
 	dragYStart = evt.clientY;
 	startScrollX = node.x;
 	startScrollY = node.y;
+	draggingNodePosition.value.x = node.x;
+	draggingNodePosition.value.y = node.y;
 	$emit('update:node', $props.nodes.slice().sort((a, b) => {
 		if (a.nodeId === node.nodeId) {
 			return 1;
@@ -334,9 +351,9 @@ function dragging(evt: MouseEvent) {
 		scrollX.value = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
 		scrollY.value = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
 	}
-	if (draggingNode) {
-		draggingNode.x = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
-		draggingNode.y = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
+	if (draggingNode.value) {
+		draggingNodePosition.value.x = startScrollX + ((1 / scale.value) * (evt.clientX - dragXStart));
+		draggingNodePosition.value.y = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
 	}
 	if (draggingOutput.value) {
 		dragOutputEnd.value.x = (evt.clientX - offset.value.x) * (1 / scale.value) - scrollX.value;
@@ -346,19 +363,21 @@ function dragging(evt: MouseEvent) {
 
 function dragEnd() {
 	isDraggingGrid = false;
-	if (draggingNode) {
-		const xDist = Math.abs(startScrollX - draggingNode.x);
-		const yDist = Math.abs(startScrollY - draggingNode.y);
+	if (draggingNode.value) {
+		const xDist = Math.abs(startScrollX - draggingNodePosition.value.x);
+		const yDist = Math.abs(startScrollY - draggingNodePosition.value.y);
 		if (xDist <= 5 && yDist <= 5) {
 			// Don't count this, user meant to click
-			draggingNode.x = startScrollX;
-			draggingNode.y = startScrollY;
-			draggingNode = null;
+			draggingNode.value.x = startScrollX;
+			draggingNode.value.y = startScrollY;
+			draggingNode.value = null;
 			didNodeDrag = false;
 			return;
 		}
-		didNodeDrag = startScrollX !== draggingNode.x || startScrollY !== draggingNode.y;
-		draggingNode = null;
+		didNodeDrag = startScrollX !== draggingNodePosition.value.x || startScrollY !== draggingNodePosition.value.y;
+		$emit('update:node', { ...draggingNode.value, x: draggingNodePosition.value.x, y: draggingNodePosition.value.y });
+		draggingNodePosition.value = { x: 0, y: 0 };
+		draggingNode.value = null;
 	}
 	if (draggingOutput.value) {
 		if (hoveredInput.value) {

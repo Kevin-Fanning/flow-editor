@@ -4,6 +4,7 @@ import FlowEditor, { type Node, type NodeType } from '../lib/main';
 import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
 import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
 import AddAppointmentNote from './AddAppointmentNote.vue';
+import { ForestGreen } from '../lib/colors';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
@@ -86,6 +87,7 @@ const nodes = ref<Node[]>([{
 const nodeTypes: NodeType[] = [{
 	name: 'Start',
 	type: 'start',
+	fill: ForestGreen.fill,
 	lockedOutputs: true,
 	outputs: [{
 		name: 'Start',

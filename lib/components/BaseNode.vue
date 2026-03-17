@@ -116,3 +116,9 @@ const metaKeys = computed(() => Object.keys($props.meta || {}));
 
 const height = computed(() => ($props.outputs.length * 35) + (metaKeys.value.length * 35) + 60);
 </script>
+
+<style scoped>
+.node-container {
+	opacity: 0.8;
+}
+</style>
