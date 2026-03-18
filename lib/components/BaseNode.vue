@@ -23,6 +23,7 @@
 		>
 			<path
 				:d="nodeType?.svgIcon"
+				style="fill: var(--fe-color-text)"
 			/>
 		</g>
 		<circle

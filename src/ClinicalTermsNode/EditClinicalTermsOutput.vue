@@ -1,12 +1,13 @@
 <template>
 	<div class="edit-clinical-terms-output">
-		<fieldset role="group">
+		<fieldset class="grouped">
 			<input
 				:value="modelValue.name"
 				disabled
 			>
 			<button
-				style="background-color: var(--pico-color-red-450) !important"
+				class="delete-output-button"
+				style="background-color: var(--fe-color-error)"
 				type="button"
 				@click="$emit('delete')"
 			>
@@ -53,12 +54,23 @@ function updateMeta(val: string) {
 
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .edit-clinical-terms-output {
 	padding: 12px;
 	border: 1px solid #777;
 	border-radius: 4px;
 	margin-bottom: 8px;
-	background-color: #2f2f2f
+	background-color: #2f2f2f;
+
+	.delete-output-button {
+		background-color: var(--fe-color-error);
+
+		&:hover {
+			background-color: var(--fe-color-error-light) !important;
+		}
+		&:active {
+			background-color: var(--fe-color-error) !important;
+		}
+	}
 }
 </style>

@@ -136,6 +136,10 @@ function createNode(node: Node) {
 	node.nodeId = -1 * newNodeCount;
 	nodes.value.push(node);
 }
+
+function deleteNode(node: Node) {
+	nodes.value = nodes.value.filter(other => other.nodeId !== node.nodeId);
+}
 </script>
 
 <template>
@@ -145,6 +149,7 @@ function createNode(node: Node) {
 			:node-types="nodeTypes"
 			@update:node="updateNode"
 			@create:node="createNode"
+			@delete:node="deleteNode"
 		/>
 	</div>
 </template>

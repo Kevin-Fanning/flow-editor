@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flow-editor pico"
+		class="flow-editor"
 		@mouseup="dragEnd"
 		@mouseleave="dragEnd"
 		@mousemove="dragging"
@@ -10,9 +10,9 @@
 		<div
 			role="button"
 			@click="createNode"
-			data-tooltip="Create New Node"
-			data-placement="bottom"
-			style="position: absolute; left: 64px; top: 10px; width: 48px; padding: 8px; border-radius: 26px;"
+			class="fe-icon-button"
+			title="Create New Node"
+			style="position: absolute; left: 64px; top: 10px;"
 		>
 			<svg style="height: 24px; width: 24px;">
 				<path :d="newIcon" />
@@ -99,6 +99,7 @@
 							@mouseenter:input="inputEnter"
 							@mouseleave:input="inputLeave"
 							@update="updateNode"
+							@contextmenu.prevent.stop="toDelete = node"
 						/>
 					</template>
 					<g
@@ -136,6 +137,12 @@
 			@close="closeNode"
 			@update="updateNode"
 		/>
+		<DeleteDialog
+			v-bind="toDelete"
+			v-if="toDelete"
+			@cancel="toDelete = null;"
+			@delete="deleteNode"
+		/>
 	</div>
 </template>
 
@@ -145,10 +152,11 @@ import { computed, ref, onMounted, useTemplateRef } from 'vue';
 import BaseNode from './components/BaseNode.vue';
 import NodeEditor from './components/NodeEditor.vue';
 import StartNode from './components/StartNode.vue';
+import DeleteDialog from './components/DeleteDialog.vue';
 import type { Node, Output, NodeType } from './types';
 
-import '@picocss/pico/scss/pico.conditional.scss';
-import '@picocss/pico/scss/pico.colors.scss';
+// import '@picocss/pico/scss/pico.conditional.scss';
+// import '@picocss/pico/scss/pico.colors.scss';
 
 const newIcon = 'M23 18H20V15H18V18H15V20H18V23H20V20H23M6 2C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H13.81C13.45 21.38 13.2 20.7 13.08 20H6V4H13V9H18V13.08C18.33 13.03 18.67 13 19 13C19.34 13 19.67 13.03 20 13.08V8L14 2M8 12V14H16V12M8 16V18H13V16Z';
 
@@ -164,7 +172,7 @@ const $props = withDefaults(defineProps<{
 	nodeTypes: () => [],
 });
 
-const $emit = defineEmits(['update:node', 'create:node', 'update:nodes']);
+const $emit = defineEmits(['update:node', 'create:node', 'delete:node']);
 
 const selectedId = ref<number | null>(null);
 const scrollX = ref(25);
@@ -204,6 +212,28 @@ let dragXStart = 0;
 let dragYStart = 0;
 let startScrollX = 0;
 let startScrollY = 0;
+
+const toDelete = ref<null | Node>(null);
+
+function deleteNode() {
+	if (!toDelete.value) {
+		return;
+	}
+	// We need to also update every node that links to this one
+	$props.nodes.forEach((node) => {
+		if (node.outputs.find(out => out.to === toDelete.value!.nodeId)) {
+			$emit('update:node', {
+				...node,
+				outputs: node.outputs.map(out => ({
+					...out,
+					to: out.to === toDelete.value!.nodeId ? null : out.to,
+				})),
+			});
+		}
+	});
+	$emit('delete:node', toDelete.value);
+	toDelete.value = null;
+}
 
 const selected = computed(() => {
 	return $props.nodes.find(node => node.nodeId === selectedId.value);
@@ -453,10 +483,105 @@ function magnify(evt: WheelEvent) {
 
 <style lang="less">
 .flow-editor {
+	--fe-color-primary: #1976D2;
+	--fe-color-primary-dark: #212121;
+	--fe-color-primary-light: #2196F3;
+	--fe-color-background: #292929;
+	--fe-color-text: #E9E9E9;
+	--fe-color-error: #F44336;
+	--fe-color-error-light: #EF5350;
+	--fe-color-success: #388E3C;
+
+	color: var(--fe-color-text);
+	background-color: var(--fe-color-background);
+	box-sizing: border-box;
+	* {
+		box-sizing: border-box;
+	}
 	width: 100%;
 	height: 100%;
-	// font-family: Verdana, Helvetica, sans-serif;
-	// font-size: 20px;
+	font-family: Verdana, Helvetica, sans-serif;
+	font-size: 20px;
+
+	fieldset {
+		border: none;
+		padding: 0;
+		&.grouped {
+			display: flex;
+			*:first-child {
+				border-radius: 4px 0 0 4px;
+				margin-right: 0;
+			}
+			*:nth-child {
+				border-radius: 0;
+				margin-right: 0;
+				margin-left: 0;
+			}
+			*:last-child {
+				border-radius: 0 4px 4px 0;
+				margin-left: 0;
+			}
+		}
+	}
+
+	label {
+		display: flex;
+		align-items: center;
+	}
+
+	input, textarea, select {
+		color: var(--fe-color-text);
+		background-color: var(--fe-color-primary-dark);
+		border: none;
+		border-radius: 8px;
+		font-size: 1.2rem;
+		padding: 8px;
+		margin: 4px;
+		width: 100%;
+		&:disabled {
+			opacity: 0.7;
+		}
+	}
+
+	button {
+		background-color: var(--fe-color-primary-dark);
+		border: none;
+		border-radius: 8px;
+		font-size: 1.2rem;
+		color: var(--fe-color-text);
+		padding: 8px;
+		margin: 4px;
+		cursor: pointer;
+		&:hover {
+			background-color: var(--fe-color-primary-light);
+		}
+		&:active {
+			background-color: var(--fe-color-primary);
+		}
+
+		&.primary {
+			background-color: var(--fe-color-primary);
+			&:hover {
+				background-color: var(--fe-color-primary-light);
+			}
+			&:active {
+				background-color: var(--fe-color-primary);
+			}
+		}
+	}
+	.fe-icon-button {
+		width: 48px;
+		padding: 8px;
+		border-radius: 26px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content:center;
+		background-color: var(--fe-color-primary);
+		svg {
+			fill: var(--fe-color-text);
+		}
+	}
 
 	.edge-line {
 		cursor: pointer;

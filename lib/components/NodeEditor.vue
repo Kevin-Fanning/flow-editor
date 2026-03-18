@@ -4,10 +4,9 @@
 		v-if="nodeId"
 	>
 		<form>
-			<fieldset>
+			<fieldset v-if="nodeId === -1">
 				<label>Select Node Type</label>
 				<select
-					v-if="nodeId === -1"
 					v-model="selectedType"
 				>
 					<option
@@ -62,7 +61,7 @@
 								:disabled="nodeType?.lockedOutputs || output.value === 'default'"
 							>
 							<button
-								style="background-color: var(--pico-color-red-450)"
+								style="background-color: var(--fe-color-error)"
 								type="button"
 								@click="outputsEdit.splice(i, 1)"
 								v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
@@ -72,7 +71,7 @@
 						</fieldset>
 					</template>
 					<button
-						style="background-color: var(--pico-color-green-450)"
+						style="background-color: var(--fe-color-success)"
 						type="button"
 						@click="outputsEdit.push({ name: '', value: 0 })"
 						v-if="!nodeType?.lockedOutputs && !nodeType?.outputCreateComponent"
@@ -88,9 +87,11 @@
 				</template>
 			</div>
 		</form>
-		<div class="grid">
+		<hr>
+		<div style="display: flex;">
 			<button
 				class="secondary"
+				style="flex: 1 1 auto;"
 				@click="close"
 				type="button"
 			>
@@ -98,7 +99,9 @@
 			</button>
 			<button
 				@click="save"
+				style="flex: 1 1 auto;"
 				type="button"
+				class="primary"
 			>
 				Save
 			</button>
@@ -188,5 +191,6 @@ function close() {
 .node-editor {
 	max-height: 100%;
 	overflow: auto;
+	background-color: var(--fe-color-background);
 }
 </style>
