@@ -130,6 +130,12 @@ function updateNode(node: Node) {
 		nodes.value.splice(idx, 1, node);
 	}
 }
+let newNodeCount = 1;
+function createNode(node: Node) {
+	newNodeCount += 1;
+	node.nodeId = -1 * newNodeCount;
+	nodes.value.push(node);
+}
 </script>
 
 <template>
@@ -138,6 +144,7 @@ function updateNode(node: Node) {
 			v-model:nodes="nodes"
 			:node-types="nodeTypes"
 			@update:node="updateNode"
+			@create:node="createNode"
 		/>
 	</div>
 </template>

@@ -1,75 +1,92 @@
 <template>
 	<div
 		class="node-editor"
-		v-if="nodeId && type"
+		v-if="nodeId"
 	>
 		<form>
 			<fieldset>
-				<label>
-					Title
-					<input
-						name="node_title"
-						placeholder="Node Title"
-						autocomplete="off"
-						v-model="titleEdit"
+				<label>Select Node Type</label>
+				<select
+					v-if="nodeId === -1"
+					v-model="selectedType"
+				>
+					<option
+						v-for="typeOption in nodeTypes"
+						:key="typeOption.type"
+						:value="typeOption.type"
 					>
-				</label>
+						{{ typeOption.name }}
+					</option>
+				</select>
 			</fieldset>
-			<component
-				v-if="nodeType?.nodeEditComponent"
-				:is="nodeType?.nodeEditComponent"
-				:meta="metaEdit"
-				@update:meta="updateMeta"
-			/>
-			<template v-if="!nodeType?.lockedOutputs || outputs.length > 0">
-				<label>Outputs:</label>
-				<template
-					v-for="(output, i) in outputsEdit"
-					:key="i"
-				>
-					<component
-						v-if="nodeType?.outputEditComponent && output.value !== 'default'"
-						:is="nodeType.outputEditComponent"
-						:model-value="output"
-						@update:model-value="outputsEdit[i] = $event"
-						@delete="outputsEdit.splice(i, 1)"
-					/>
-					<fieldset
-						role="group"
-						v-else
-					>
+			<div v-show="selectedType">
+				<fieldset>
+					<label>
+						Title
 						<input
-							name="output"
-							placeholder="Output Name"
+							name="node_title"
+							placeholder="Node Title"
 							autocomplete="off"
-							v-model="output.name"
-							:disabled="nodeType?.lockedOutputs || output.value === 'default'"
+							v-model="titleEdit"
 						>
-						<button
-							style="background-color: var(--pico-color-red-450)"
-							type="button"
-							@click="outputsEdit.splice(i, 1)"
-							v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
-						>
-							X
-						</button>
-					</fieldset>
-				</template>
-				<button
-					style="background-color: var(--pico-color-green-450)"
-					type="button"
-					@click="outputsEdit.push({ name: '', value: 0 })"
-					v-if="!nodeType?.lockedOutputs && !nodeType?.outputCreateComponent"
-				>
-					Add Output
-				</button>
+					</label>
+				</fieldset>
 				<component
-					v-else-if="nodeType?.outputCreateComponent"
-					:is="nodeType?.outputCreateComponent"
-					:existing="outputsEdit"
-					@update:model-value="outputsEdit.push($event)"
+					v-if="nodeType?.nodeEditComponent"
+					:is="nodeType?.nodeEditComponent"
+					:meta="metaEdit"
+					@update:meta="updateMeta"
 				/>
-			</template>
+				<template v-if="!nodeType?.lockedOutputs || outputs.length > 0">
+					<label>Outputs:</label>
+					<template
+						v-for="(output, i) in outputsEdit"
+						:key="i"
+					>
+						<component
+							v-if="nodeType?.outputEditComponent && output.value !== 'default'"
+							:is="nodeType.outputEditComponent"
+							:model-value="output"
+							@update:model-value="outputsEdit[i] = $event"
+							@delete="outputsEdit.splice(i, 1)"
+						/>
+						<fieldset
+							role="group"
+							v-else
+						>
+							<input
+								name="output"
+								placeholder="Output Name"
+								autocomplete="off"
+								v-model="output.name"
+								:disabled="nodeType?.lockedOutputs || output.value === 'default'"
+							>
+							<button
+								style="background-color: var(--pico-color-red-450)"
+								type="button"
+								@click="outputsEdit.splice(i, 1)"
+								v-if="!nodeType?.lockedOutputs && output.value !== 'default'"
+							>
+								X
+							</button>
+						</fieldset>
+					</template>
+					<button
+						style="background-color: var(--pico-color-green-450)"
+						type="button"
+						@click="outputsEdit.push({ name: '', value: 0 })"
+						v-if="!nodeType?.lockedOutputs && !nodeType?.outputCreateComponent"
+					>
+						Add Output
+					</button>
+					<component
+						v-else-if="nodeType?.outputCreateComponent"
+						:is="nodeType?.outputCreateComponent"
+						:existing="outputsEdit"
+						@update:model-value="outputsEdit.push($event)"
+					/>
+				</template>
+			</div>
 		</form>
 		<div class="grid">
 			<button
@@ -90,11 +107,10 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from 'vue';
+import { watch, ref, computed } from 'vue';
 import type { NodeType, Output } from '../types';
 
 const $props = withDefaults(defineProps<{
-	active?: boolean;
 	nodeId?: number;
 	type?: string;
 	x?: number;
@@ -106,9 +122,8 @@ const $props = withDefaults(defineProps<{
 	outputs?: Output[];
 	meta?: Record<string, unknown> | null;
 	selected?: boolean;
-	nodeType?: NodeType | null;
+	nodeTypes: NodeType[];
 }>(), {
-	active: false,
 	nodeId: undefined,
 	type: '',
 	x: 0,
@@ -128,6 +143,9 @@ const promptEdit = ref('');
 const outputsEdit = ref<Output[]>([]);
 const metaEdit = ref<Record<string, unknown>>({});
 
+const selectedType = ref<string>($props.type);
+const nodeType = computed(() => $props.nodeTypes.find(type => type.type === selectedType.value) || null);
+
 const $emit = defineEmits(['close', 'update']);
 
 watch(() => $props.nodeId, () => {
@@ -135,6 +153,14 @@ watch(() => $props.nodeId, () => {
 	promptEdit.value = $props.prompt;
 	outputsEdit.value = $props.outputs.slice();
 	metaEdit.value = $props.meta || {};
+	selectedType.value = $props.type;
+});
+
+watch(selectedType, () => {
+	// Reset node when changing types
+	titleEdit.value = '';
+	outputsEdit.value = nodeType.value?.outputs || [];
+	metaEdit.value = {};
 });
 
 function updateMeta(meta: Record<string, unknown>) {
@@ -144,7 +170,8 @@ function updateMeta(meta: Record<string, unknown>) {
 function save() {
 	$emit('update', {
 		...$props,
-		title: titleEdit.value,
+		type: selectedType.value,
+		name: titleEdit.value,
 		prompt: promptEdit.value,
 		outputs: outputsEdit.value,
 		meta: metaEdit.value,

@@ -7,8 +7,19 @@
 		@click:right.prevent.stop="() => {}"
 		@contextmenu.prevent.stop="() => {}"
 	>
+		<div
+			role="button"
+			@click="createNode"
+			data-tooltip="Create New Node"
+			data-placement="bottom"
+			style="position: absolute; left: 64px; top: 10px; width: 48px; padding: 8px; border-radius: 26px;"
+		>
+			<svg style="height: 24px; width: 24px;">
+				<path :d="newIcon" />
+			</svg>
+		</div>
 		<svg
-			:width="selected ? 'calc(100% - 500px)' : '100%'"
+			:width="(selected || newNode) ? 'calc(100% - 500px)' : '100%'"
 			height="100%"
 			@wheel="magnify"
 		>
@@ -119,9 +130,9 @@
 			</g>
 		</svg>
 		<NodeEditor
-			v-show="selected"
-			v-bind="selected"
-			:node-type="nodeTypes.find(type => type.type === selected?.type) ?? null"
+			v-show="selected || newNode"
+			v-bind="selected || newNode"
+			:node-types="nodeTypes.filter(type => type.type !== 'start')"
 			@close="closeNode"
 			@update="updateNode"
 		/>
@@ -139,6 +150,8 @@ import type { Node, Output, NodeType } from './types';
 import '@picocss/pico/scss/pico.conditional.scss';
 import '@picocss/pico/scss/pico.colors.scss';
 
+const newIcon = 'M23 18H20V15H18V18H15V20H18V23H20V20H23M6 2C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H13.81C13.45 21.38 13.2 20.7 13.08 20H6V4H13V9H18V13.08C18.33 13.03 18.67 13 19 13C19.34 13 19.67 13.03 20 13.08V8L14 2M8 12V14H16V12M8 16V18H13V16Z';
+
 const $scaleElement = useTemplateRef<SVGGElement>('scaleElement');
 
 const $props = withDefaults(defineProps<{
@@ -151,12 +164,12 @@ const $props = withDefaults(defineProps<{
 	nodeTypes: () => [],
 });
 
-const $emit = defineEmits(['update:node', 'update:nodes']);
+const $emit = defineEmits(['update:node', 'create:node', 'update:nodes']);
 
 const selectedId = ref<number | null>(null);
 const scrollX = ref(25);
-const scrollY = ref(0);
-const scale = ref(0.5);
+const scrollY = ref(100);
+const scale = ref(1);
 const gridX = computed(() => scrollX.value >= 0 ? scrollX.value % $props.gridSize : ($props.gridSize + (scrollX.value % $props.gridSize)));
 const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSize : ($props.gridSize + (scrollY.value % $props.gridSize)));
 
@@ -207,11 +220,14 @@ function selectNode(nodeId: number) {
 function updateNode(props: Partial<Node>) {
 	if (selected.value) {
 		$emit('update:node', { ...selected.value, ...props });
+	} else if (newNode.value) {
+		$emit('create:node', props);
 	}
 }
 
 function closeNode() {
 	selectedId.value = null;
+	newNode.value = null;
 }
 
 interface Edge {
@@ -301,6 +317,19 @@ const draggingOutputPath = computed(() => {
 
 onMounted(() => {
 });
+
+const newNode = ref<Node | null>(null);
+function createNode() {
+	selectedId.value = null;
+	newNode.value = {
+		type: '',
+		name: '',
+		nodeId: -1,
+		x: 0,
+		y: 0,
+		outputs: [],
+	};
+}
 
 function gridDragStart(evt: MouseEvent) {
 	dragXStart = evt.clientX;

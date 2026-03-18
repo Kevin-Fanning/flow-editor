@@ -16,7 +16,7 @@ export default defineConfigWithVueTs([
 		semi: true,
 		commaDangle: 'always-multiline',
 		arrowParens: false,
-		braceStyle: 'stroustrup',
+		braceStyle: '1tbs',
 	}),
 	{
 		rules: {
