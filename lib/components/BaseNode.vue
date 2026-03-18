@@ -11,12 +11,20 @@
 			class="node-container"
 			x="0"
 			y="0"
-			:width="width"
+			:width="(nodeType?.width || 200)"
 			:height="height"
 			stroke="white"
 			:fill="fill"
 			rx="15"
 		/>
+		<g
+			v-if="nodeType?.svgIcon"
+			transform="translate(16,16)"
+		>
+			<path
+				:d="nodeType?.svgIcon"
+			/>
+		</g>
 		<circle
 			v-if="type !== 'start'"
 			class="input-port"
@@ -30,9 +38,9 @@
 		/>
 		<foreignObject
 			class="node-title"
-			x="20"
+			:x="nodeType?.svgIcon ? 46 : 20"
 			y="10"
-			:width="width - 20"
+			:width="(nodeType?.width || 200) - (nodeType?.svgIcon ? 46 : 20)"
 			height="35"
 		>
 			<p :title="name">
@@ -47,7 +55,7 @@
 				class="node-meta-name"
 				x="25"
 				:y="45 + (i * 35)"
-				:width="width - 25"
+				:width="(nodeType?.width || 200) - 25"
 				height="30"
 			>
 				<p :title="`${meta?.[key]}`">
@@ -63,7 +71,7 @@
 				class="node-output-name"
 				x="5"
 				:y="45 + (metaKeys.length * 35) + (i * 35)"
-				:width="width - 25"
+				:width="(nodeType?.width || 200) - 25"
 				height="30"
 			>
 				<p :title="output.name">
@@ -73,7 +81,7 @@
 			<circle
 				@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output })"
 				class="output-port"
-				:cx="width"
+				:cx="(nodeType?.width || 200)"
 				:cy="63 + (metaKeys.length * 35) + (i * 35)"
 				r="10"
 				stroke-width="3"
@@ -93,7 +101,6 @@ const $props = withDefaults(defineProps<{
 	type: string;
 	x?: number;
 	y?: number;
-	width?: number;
 	name?: string;
 	fill?: string;
 	meta?: Record<string, unknown> | null;
@@ -103,7 +110,6 @@ const $props = withDefaults(defineProps<{
 }>(), {
 	x: 0,
 	y: 0,
-	width: 200,
 	name: '',
 	fill: '#222',
 	outputs: () => [],

@@ -22,6 +22,10 @@ export interface NodeType {
 	name?: string;
 	// The identifying value of the type
 	type: string;
+	// SVG Path data to use as an icon on the node
+	svgIcon?: string;
+	// The width of the node in the editor. Default of 200. You may need to increase this if the titles or outputs are long
+	width?: number;
 	// List of outputs that are added to the node when it is created.
 	outputs: {
 		name: string;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { mdiArrowTopRightThinCircleOutline } from '@mdi/js';
 import FlowEditor, { type Node, type NodeType } from '../lib/main';
 import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
 import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
@@ -12,7 +13,6 @@ const nodes = ref<Node[]>([{
 	type: 'start',
 	x: 10,
 	y: 10,
-	width: 100,
 	outputs: [{
 		name: 'Start',
 		value: 'start',
@@ -24,7 +24,6 @@ const nodes = ref<Node[]>([{
 	type: 'clinical_terms',
 	x: 200,
 	y: 100,
-	width: 300,
 	outputs: [{
 		name: 'Default',
 		value: 'default',
@@ -61,7 +60,6 @@ const nodes = ref<Node[]>([{
 	name: 'DNP (Direct New Patient)',
 	x: 1000,
 	y: 300,
-	width: 300,
 	outputs: [],
 }, {
 	nodeId: 4,
@@ -69,7 +67,6 @@ const nodes = ref<Node[]>([{
 	name: 'NP (New Patient)',
 	x: 1000,
 	y: 400,
-	width: 300,
 	outputs: [],
 }, {
 	nodeId: 5,
@@ -77,7 +74,6 @@ const nodes = ref<Node[]>([{
 	name: 'Clinical Terms 2',
 	x: 1000,
 	y: 600,
-	width: 300,
 	outputs: [],
 	meta: {
 		appointmentNote: 'asdf',
@@ -88,6 +84,7 @@ const nodeTypes: NodeType[] = [{
 	name: 'Start',
 	type: 'start',
 	fill: ForestGreen.fill,
+	width: 100,
 	lockedOutputs: true,
 	outputs: [{
 		name: 'Start',
@@ -96,11 +93,14 @@ const nodeTypes: NodeType[] = [{
 }, {
 	name: 'Quit',
 	type: 'quit',
+	width: 300,
 	lockedOutputs: true,
 	outputs: [],
 }, {
 	name: 'Direct Referral',
 	type: 'direct_referral',
+	width: 220,
+	svgIcon: mdiArrowTopRightThinCircleOutline,
 	lockedOutputs: true,
 	outputs: [{
 		name: 'Yes',
@@ -112,6 +112,7 @@ const nodeTypes: NodeType[] = [{
 }, {
 	name: 'Clinical Terms',
 	type: 'clinical_terms',
+	width: 300,
 	outputs: [{
 		name: 'Default',
 		value: 'default',

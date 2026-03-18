@@ -71,6 +71,7 @@
 						<StartNode
 							v-if="node.type === 'start'"
 							v-bind="node"
+							:width="nodeTypes.find(type => type.type === 'start')?.width"
 							:fill="nodeTypes.find(type => type.type === 'start')?.fill"
 							@mousedown:output="outputDragStart"
 						/>
@@ -244,9 +245,10 @@ const edges = computed(() => {
 					const outputHeight = 35;
 					const inputStart = 30;
 					const position: { x: number; y: number } = (node.nodeId === draggingNode.value?.nodeId) ? draggingNodePosition.value : node;
+					const nodeType = $props.nodeTypes.find(type => type.type === node.type);
 					const edge: Edge = {
 						idx: i,
-						x1: position.x + (node.width || 200) + 12,
+						x1: position.x + (nodeType?.width || 200) + 12,
 						y1: position.y + metaHeight + outputStart + (i * outputHeight),
 						x2: otherPosition.x - 12,
 						y2: otherPosition.y + inputStart,
