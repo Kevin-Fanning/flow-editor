@@ -543,6 +543,11 @@ function magnify(evt: WheelEvent) {
 		}
 	}
 
+	textarea {
+		resize: vertical;
+		font-family: Verdana, Helvetica, sans-serif;
+	}
+
 	button {
 		background-color: var(--fe-color-primary-dark);
 		border: none;

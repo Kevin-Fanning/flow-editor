@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import { mdiArrowTopRightThinCircleOutline } from '@mdi/js';
 import FlowEditor, { type Node, type NodeType } from '../lib/main';
-import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
-import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
-import AddAppointmentNote from './AddAppointmentNote.vue';
+import CreateOptionOutput from './MultipleOptionsNode/CreateOptionOutput.vue';
+import EditOptionOutput from './MultipleOptionsNode/EditOptionOutput.vue';
+import AddNoteToNode from './AddNoteToNode.vue';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
@@ -19,8 +19,8 @@ const nodes = ref<Node[]>([{
 	}],
 }, {
 	nodeId: 1,
-	name: 'Clinical Terms',
-	type: 'clinical_terms',
+	name: 'Multiple Options',
+	type: 'multiple_outputs',
 	x: 200,
 	y: 100,
 	outputs: [{
@@ -28,20 +28,19 @@ const nodes = ref<Node[]>([{
 		value: 'default',
 		to: 2,
 	}, {
-		name: 'Knee Pain',
+		name: 'Option 1',
 		value: 1,
 	}, {
-		name: 'Arm Pain',
+		name: 'Option 2',
 		value: 2,
 	}, {
-		name: 'Foot Pain',
+		name: 'Option 3',
 		value: 3,
 	}],
 }, {
 	nodeId: 2,
-	type: 'direct_referral',
-	name: 'Direct Referral',
-	prompt: 'Does the patient have a direct referral?',
+	type: 'yes_no',
+	name: 'Yes or No?',
 	x: 600,
 	y: 300,
 	outputs: [{
@@ -56,26 +55,26 @@ const nodes = ref<Node[]>([{
 }, {
 	nodeId: 3,
 	type: 'quit',
-	name: 'DNP (Direct New Patient)',
+	name: 'Terminal Node A',
 	x: 1000,
 	y: 300,
 	outputs: [],
 }, {
 	nodeId: 4,
 	type: 'quit',
-	name: 'NP (New Patient)',
+	name: 'Terminal Node B',
 	x: 1000,
 	y: 400,
 	outputs: [],
 }, {
 	nodeId: 5,
-	type: 'clinical_terms',
-	name: 'Clinical Terms 2',
+	type: 'multiple_outputs',
+	name: 'With an extra metadata field',
 	x: 1000,
 	y: 600,
 	outputs: [],
 	meta: {
-		appointmentNote: 'asdf',
+		notes: 'This is a sample note.',
 	},
 }]);
 
@@ -97,8 +96,8 @@ const nodeTypes: NodeType[] = [{
 	lockedOutputs: true,
 	outputs: [],
 }, {
-	name: 'Direct Referral',
-	type: 'direct_referral',
+	name: 'Yes/No Node',
+	type: 'yes_no',
 	width: 220,
 	fill: '#1976D2',
 	svgIcon: mdiArrowTopRightThinCircleOutline,
@@ -111,17 +110,17 @@ const nodeTypes: NodeType[] = [{
 		value: 'no',
 	}],
 }, {
-	name: 'Clinical Terms',
-	type: 'clinical_terms',
+	name: 'Multiple Outputs',
+	type: 'multiple_outputs',
 	fill: '#512DA8',
 	width: 300,
 	outputs: [{
 		name: 'Default',
 		value: 'default',
 	}],
-	nodeEditComponent: AddAppointmentNote,
-	outputCreateComponent: CreateClinicalTermsOutput,
-	outputEditComponent: EditClinicalTermsOutput,
+	nodeEditComponent: AddNoteToNode,
+	outputCreateComponent: CreateOptionOutput,
+	outputEditComponent: EditOptionOutput,
 }];
 
 function updateNode(node: Node) {
