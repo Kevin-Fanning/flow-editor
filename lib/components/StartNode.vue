@@ -24,21 +24,34 @@
 		>
 			<p>Start</p>
 		</foreignObject>
-		<circle
-			@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output: outputs[0] })"
+		<g
 			class="output-port"
-			:cx="width"
-			:cy="28"
-			r="10"
-			stroke-width="3"
-			fill="#444"
-		/>
+			@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output: outputs[0] })"
+		>
+			<circle
+				:cx="width"
+				:cy="28"
+				r="10"
+				stroke-width="3"
+				fill="#444"
+			/>
+			<g
+				v-if="!outputs[0]?.to"
+				:transform="`translate(${(width || 200) - 9.5},${18})scale(0.8)`"
+				fill="yellow"
+			>
+				<path :d="alertIcon" />
+			</g>
+		</g>
 	</g>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Output } from '../types';
+
+const alertIcon = 'M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z';
+
 defineEmits(['mousedown:output']);
 
 const $props = withDefaults(defineProps<{

@@ -14,7 +14,7 @@
 			:width="(nodeType?.width || 200)"
 			:height="height"
 			stroke="white"
-			:fill="fill"
+			:fill="nodeType?.fill || fill"
 			rx="15"
 		/>
 		<g
@@ -78,15 +78,25 @@
 					{{ output.name }}
 				</p>
 			</foreignObject>
-			<circle
+			<g
 				@mousedown.prevent.stop="$emit('mousedown:output', { event: $event, nodeId, output })"
 				class="output-port"
-				:cx="(nodeType?.width || 200)"
-				:cy="63 + (metaKeys.length * 35) + (i * 35)"
-				r="10"
-				stroke-width="3"
-				fill="#444"
-			/>
+			>
+				<circle
+					:cx="(nodeType?.width || 200)"
+					:cy="63 + (metaKeys.length * 35) + (i * 35)"
+					r="10"
+					stroke-width="3"
+					fill="#444"
+				/>
+				<g
+					v-if="!output.to"
+					:transform="`translate(${(nodeType?.width || 200) - 9.5},${52 + (metaKeys.length * 35) + (i * 35)})scale(0.8)`"
+					fill="yellow"
+				>
+					<path :d="alertIcon" />
+				</g>
+			</g>
 		</g>
 	</g>
 </template>
@@ -96,13 +106,15 @@ import { computed } from 'vue';
 import type { NodeType, Output } from '../types.ts';
 defineEmits(['select', 'mousedown:output', 'mouseenter:input', 'mouseleave:input']);
 
+const alertIcon = 'M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z';
+
 const $props = withDefaults(defineProps<{
 	nodeId: number;
 	type: string;
 	x?: number;
 	y?: number;
-	name?: string;
 	fill?: string;
+	name?: string;
 	meta?: Record<string, unknown> | null;
 	outputs?: Output[];
 	selected?: boolean;

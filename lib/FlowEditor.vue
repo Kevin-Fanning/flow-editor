@@ -456,14 +456,21 @@ function magnify(evt: WheelEvent) {
 				fill: #202050;
 			}
 		}
-		.output-port,.input-port {
+		.output-port {
+			cursor: pointer;
+		}
+		.output-port circle,.input-port {
 			stroke-width: 3;
 			stroke: #E5E5E5;
 			cursor: pointer;
-			&:hover {
-				stroke: lightblue;
-				stroke-width: 5;
-			}
+		}
+		.output-port:hover circle {
+			stroke: lightblue;
+			stroke-width: 5;
+		}
+		.input-port:hover {
+			stroke: lightblue;
+			stroke-width: 5;
 		}
 		.node-title p, .node-meta-name p {
 			user-select: none;

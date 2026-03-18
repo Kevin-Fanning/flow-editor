@@ -5,7 +5,6 @@ import FlowEditor, { type Node, type NodeType } from '../lib/main';
 import CreateClinicalTermsOutput from './ClinicalTermsNode/CreateClinicalTermsOutput.vue';
 import EditClinicalTermsOutput from './ClinicalTermsNode/EditClinicalTermsOutput.vue';
 import AddAppointmentNote from './AddAppointmentNote.vue';
-import { ForestGreen } from '../lib/colors';
 
 const nodes = ref<Node[]>([{
 	nodeId: 0,
@@ -83,7 +82,7 @@ const nodes = ref<Node[]>([{
 const nodeTypes: NodeType[] = [{
 	name: 'Start',
 	type: 'start',
-	fill: ForestGreen.fill,
+	fill: '#388E3C',
 	width: 100,
 	lockedOutputs: true,
 	outputs: [{
@@ -94,12 +93,14 @@ const nodeTypes: NodeType[] = [{
 	name: 'Quit',
 	type: 'quit',
 	width: 300,
+	fill: '#E64A19',
 	lockedOutputs: true,
 	outputs: [],
 }, {
 	name: 'Direct Referral',
 	type: 'direct_referral',
 	width: 220,
+	fill: '#1976D2',
 	svgIcon: mdiArrowTopRightThinCircleOutline,
 	lockedOutputs: true,
 	outputs: [{
@@ -112,6 +113,7 @@ const nodeTypes: NodeType[] = [{
 }, {
 	name: 'Clinical Terms',
 	type: 'clinical_terms',
+	fill: '#512DA8',
 	width: 300,
 	outputs: [{
 		name: 'Default',
