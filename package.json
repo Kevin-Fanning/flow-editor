@@ -1,5 +1,5 @@
 {
-  "name": "flow-editor",
+  "name": "kf-flow-editor",
   "packageManager": "pnpm@10.32.1",
   "version": "0.0.0",
   "private": true,
