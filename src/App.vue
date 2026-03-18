@@ -1,3 +1,18 @@
+<template>
+	<div class="sample-flow-editor">
+		<h1>Sample Editor</h1>
+		<div class="wrapper">
+			<FlowEditor
+				v-model:nodes="nodes"
+				:node-types="nodeTypes"
+				@update:node="updateNode"
+				@create:node="createNode"
+				@delete:node="deleteNode"
+			/>
+		</div>
+	</div>
+</template>
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import { mdiArrowTopRightThinCircleOutline } from '@mdi/js';
@@ -141,29 +156,21 @@ function deleteNode(node: Node) {
 }
 </script>
 
-<template>
-	<div class="wrapper">
-		<FlowEditor
-			v-model:nodes="nodes"
-			:node-types="nodeTypes"
-			@update:node="updateNode"
-			@create:node="createNode"
-			@delete:node="deleteNode"
-		/>
-	</div>
-</template>
-
 <style>
+.sample-flow-editor {
+	width: 90%;
+	margin: 0 auto;
+}
 .wrapper {
-  width: 100%;
-  height: 100%;
+	width: 100%;
+	height: 1080px;
 }
 
 html, body, #app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
 }
 </style>

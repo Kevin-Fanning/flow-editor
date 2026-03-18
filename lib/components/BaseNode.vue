@@ -41,7 +41,7 @@
 			class="node-title"
 			:x="nodeType?.svgIcon ? 46 : 20"
 			y="10"
-			:width="(nodeType?.width || 200) - (nodeType?.svgIcon ? 46 : 20)"
+			:width="(nodeType?.width || 200) - (nodeType?.svgIcon ? 46 : 24)"
 			height="35"
 		>
 			<p :title="name">
@@ -54,7 +54,7 @@
 		>
 			<foreignObject
 				class="node-meta-name"
-				x="25"
+				x="20"
 				:y="45 + (i * 35)"
 				:width="(nodeType?.width || 200) - 25"
 				height="30"

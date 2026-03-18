@@ -498,6 +498,7 @@ function magnify(evt: WheelEvent) {
 	* {
 		box-sizing: border-box;
 	}
+	position: relative;
 	width: 100%;
 	height: 100%;
 	font-family: Verdana, Helvetica, sans-serif;
