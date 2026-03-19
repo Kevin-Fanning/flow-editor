@@ -1,8 +1,9 @@
 {
   "name": "@kmf5302/flow-editor",
   "packageManager": "pnpm@10.32.1",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
+  "private": false,
+  "license": "MIT",
   "type": "module",
   "files": [
     "dist"
