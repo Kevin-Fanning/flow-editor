@@ -1,6 +1,6 @@
 <template>
 	<div class="sample-flow-editor">
-		<h1>Sample Editor</h1>
+		<h2>Sample Editor</h2>
 		<div class="wrapper">
 			<FlowEditor
 				v-model:nodes="nodes"

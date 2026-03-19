@@ -60,7 +60,7 @@
 			</defs>
 			<g
 				ref="scaleElement"
-				:style="`transform: translate(${offset.x}px,${offset.y}px) scale(${scale})`"
+				:style="`transform: scale(${scale})`"
 			>
 				<rect
 					fill="url(#GridLayer)"
@@ -68,7 +68,6 @@
 					:height="`${scale <= 1 ? (100 * (1 / scale)) : 100}%`"
 					draggable
 					ref="gridElement"
-					:style="`transform: translate(${-offset.x*(1/scale)}px,${-offset.y*(1/scale)}px)`"
 					@mousedown="gridDragStart"
 				/>
 				<g
@@ -183,6 +182,12 @@ const gridY = computed(() => scrollY.value >= 0 ? scrollY.value % $props.gridSiz
 const sortedNodes = computed(() => {
 	const list = $props.nodes.slice();
 	list.sort((a, b) => {
+		if (a.type === 'start') {
+			return -1;
+		}
+		if (b.type === 'start') {
+			return 1;
+		}
 		if (a.nodeId === draggingNode.value?.nodeId) {
 			return 1;
 		}
@@ -250,6 +255,19 @@ function updateNode(props: Partial<Node>) {
 	if (selected.value) {
 		$emit('update:node', { ...selected.value, ...props });
 	} else if (newNode.value) {
+		// Set the x and y to the middle of the screen
+		const rect = $container.value?.getBoundingClientRect();
+		if (rect) {
+			const nodeType = $props.nodeTypes.find(type => type.type === props.type);
+			// Set to middle of screen space
+			props.x = (rect.width / 2) - ((nodeType?.width || 200) / 2);
+			props.y = (rect.height / 2) - 32; // Get the title in the middle, we don't know the height easily here.
+			// translate from screen space to world space
+			props.x = (props.x) * (1 / scale.value) - scrollX.value;
+			props.y = (props.y) * (1 / scale.value) - scrollY.value;
+			// props.x = props.x - (scrollX.value * (1 / scale.value));
+			// props.y = props.y - (scrollY.value * (1 / scale.value));
+		}
 		$emit('create:node', props);
 	}
 }
@@ -361,9 +379,8 @@ function createNode() {
 }
 
 function gridDragStart(evt: MouseEvent) {
-	const containerBox = $container.value!.getBoundingClientRect();
-	dragXStart = evt.clientX - containerBox.x;
-	dragYStart = evt.clientY - containerBox.y;
+	dragXStart = evt.clientX;
+	dragYStart = evt.clientY;
 	startScrollX = scrollX.value;
 	startScrollY = scrollY.value;
 	isDraggingGrid = true;
@@ -378,22 +395,13 @@ function nodeDragStart(evt: MouseEvent, node: Node) {
 	startScrollY = node.y;
 	draggingNodePosition.value.x = node.x;
 	draggingNodePosition.value.y = node.y;
-	$emit('update:node', $props.nodes.slice().sort((a, b) => {
-		if (a.nodeId === node.nodeId) {
-			return 1;
-		}
-		if (b.nodeId === node.nodeId) {
-			return -1;
-		}
-		return 0;
-	}));
 }
 
 function outputDragStart({ event, nodeId, output }: { event: MouseEvent; nodeId: number; output: Output }) {
 	const containerBox = $container.value!.getBoundingClientRect();
 	draggingOutput.value = { ...output, nodeId };
-	dragXStart = (event.clientX - offset.value.x - containerBox.x) * (1 / scale.value) - scrollX.value;
-	dragYStart = (event.clientY - offset.value.y - containerBox.y) * (1 / scale.value) - scrollY.value;
+	dragXStart = (event.clientX - containerBox.x) * (1 / scale.value) - scrollX.value;
+	dragYStart = (event.clientY - containerBox.y) * (1 / scale.value) - scrollY.value;
 	dragOutputEnd.value.x = dragXStart;
 	dragOutputEnd.value.y = dragYStart;
 }
@@ -419,8 +427,8 @@ function dragging(evt: MouseEvent) {
 	}
 	if (draggingOutput.value) {
 		const containerBox = $container.value!.getBoundingClientRect();
-		dragOutputEnd.value.x = (evt.clientX - offset.value.x - containerBox.x) * (1 / scale.value) - scrollX.value;
-		dragOutputEnd.value.y = (evt.clientY - offset.value.y - containerBox.y) * (1 / scale.value) - scrollY.value;
+		dragOutputEnd.value.x = (evt.clientX - containerBox.x) * (1 / scale.value) - scrollX.value;
+		dragOutputEnd.value.y = (evt.clientY - containerBox.y) * (1 / scale.value) - scrollY.value;
 	}
 }
 
@@ -461,25 +469,24 @@ function dragEnd() {
 	}
 }
 
-const offset = ref({
-	x: 0,
-	y: 0,
-});
-
 function magnify(evt: WheelEvent) {
 	const mouseX = evt.clientX - ($scaleElement.value?.getBoundingClientRect().left || 0);
 	const mouseY = evt.clientY - ($scaleElement.value?.getBoundingClientRect().top || 0);
 
-	const worldXBefore = (mouseX - offset.value.x) / scale.value;
-	const worldYBefore = (mouseY - offset.value.y) / scale.value;
+	const worldX = (mouseX / scale.value) - scrollX.value;
+	const worldY = (mouseY / scale.value) - scrollY.value;
 
 	scale.value += Math.sign(evt.deltaY) * -0.25;
 	scale.value = Math.min(Math.max(0.5, scale.value), 2);
 
-	const worldXAfter = worldXBefore * scale.value;
-	const worldYAfter = worldYBefore * scale.value;
+	const screenX = (worldX + scrollX.value) * scale.value;
+	const screenY = (worldY + scrollY.value) * scale.value;
 
-	offset.value = { x: mouseX - worldXAfter, y: mouseY - worldYAfter };
+	const changeX = (mouseX - screenX) / scale.value;
+	const changeY = (mouseY - screenY) / scale.value;
+
+	scrollX.value += changeX;
+	scrollY.value += changeY;
 }
 </script>
 
