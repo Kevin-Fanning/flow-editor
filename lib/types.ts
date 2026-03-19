@@ -4,6 +4,7 @@ export interface Output {
 	name: string;
 	value: string | number | boolean;
 	to?: number;
+	meta?: Record<string, unknown> | null;
 }
 export interface Node {
 	nodeId: number;
@@ -11,9 +12,7 @@ export interface Node {
 	type: string;
 	x: number;
 	y: number;
-	width?: number;
 	outputs: Output[];
-	prompt?: string;
 	meta?: Record<string, unknown> | null;
 }
 
