@@ -50,7 +50,7 @@
 							@delete="outputsEdit.splice(i, 1)"
 						/>
 						<fieldset
-							role="group"
+							class="grouped"
 							v-else
 						>
 							<input
