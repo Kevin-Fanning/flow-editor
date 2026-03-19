@@ -1,6 +1,7 @@
 <template>
 	<div
 		class="flow-editor"
+		ref="container"
 		@mouseup="dragEnd"
 		@mouseleave="dragEnd"
 		@mousemove="dragging"
@@ -155,11 +156,9 @@ import StartNode from './components/StartNode.vue';
 import DeleteDialog from './components/DeleteDialog.vue';
 import type { Node, Output, NodeType } from './types';
 
-// import '@picocss/pico/scss/pico.conditional.scss';
-// import '@picocss/pico/scss/pico.colors.scss';
-
 const newIcon = 'M23 18H20V15H18V18H15V20H18V23H20V20H23M6 2C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H13.81C13.45 21.38 13.2 20.7 13.08 20H6V4H13V9H18V13.08C18.33 13.03 18.67 13 19 13C19.34 13 19.67 13.03 20 13.08V8L14 2M8 12V14H16V12M8 16V18H13V16Z';
 
+const $container = useTemplateRef<HTMLDivElement>('container');
 const $scaleElement = useTemplateRef<SVGGElement>('scaleElement');
 
 const $props = withDefaults(defineProps<{
@@ -362,8 +361,9 @@ function createNode() {
 }
 
 function gridDragStart(evt: MouseEvent) {
-	dragXStart = evt.clientX;
-	dragYStart = evt.clientY;
+	const containerBox = $container.value!.getBoundingClientRect();
+	dragXStart = evt.clientX - containerBox.x;
+	dragYStart = evt.clientY - containerBox.y;
 	startScrollX = scrollX.value;
 	startScrollY = scrollY.value;
 	isDraggingGrid = true;
@@ -390,9 +390,10 @@ function nodeDragStart(evt: MouseEvent, node: Node) {
 }
 
 function outputDragStart({ event, nodeId, output }: { event: MouseEvent; nodeId: number; output: Output }) {
+	const containerBox = $container.value!.getBoundingClientRect();
 	draggingOutput.value = { ...output, nodeId };
-	dragXStart = (event.clientX - offset.value.x) * (1 / scale.value) - scrollX.value;
-	dragYStart = (event.clientY - offset.value.y) * (1 / scale.value) - scrollY.value;
+	dragXStart = (event.clientX - offset.value.x - containerBox.x) * (1 / scale.value) - scrollX.value;
+	dragYStart = (event.clientY - offset.value.y - containerBox.y) * (1 / scale.value) - scrollY.value;
 	dragOutputEnd.value.x = dragXStart;
 	dragOutputEnd.value.y = dragYStart;
 }
@@ -417,8 +418,9 @@ function dragging(evt: MouseEvent) {
 		draggingNodePosition.value.y = startScrollY + ((1 / scale.value) * (evt.clientY - dragYStart));
 	}
 	if (draggingOutput.value) {
-		dragOutputEnd.value.x = (evt.clientX - offset.value.x) * (1 / scale.value) - scrollX.value;
-		dragOutputEnd.value.y = (evt.clientY - offset.value.y) * (1 / scale.value) - scrollY.value;
+		const containerBox = $container.value!.getBoundingClientRect();
+		dragOutputEnd.value.x = (evt.clientX - offset.value.x - containerBox.x) * (1 / scale.value) - scrollX.value;
+		dragOutputEnd.value.y = (evt.clientY - offset.value.y - containerBox.y) * (1 / scale.value) - scrollY.value;
 	}
 }
 

@@ -7,8 +7,12 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
-  "types": "dist/FlowEditor.vue.d.ts",
+  "main": "dist/main.js",
+  "exports": {
+    ".": "./dist/main.js",
+    "./main.css": "./dist/main.css"
+  },
+  "types": "dist/main.d.ts",
   "scripts": {
     "serve": "vite",
     "build": "vite build",

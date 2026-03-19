@@ -36,7 +36,7 @@ defineEmits(['cancel', 'delete']);
 <style scoped lang="less">
 .delete-dialog-container {
 	width: 100%;
-	height: 100vh;
+	height: 100%;
 	position: absolute;
 	left: 0;
 	top: 0;
