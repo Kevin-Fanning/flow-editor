@@ -162,7 +162,11 @@ watch(() => $props.nodeId, () => {
 watch(selectedType, () => {
 	// Reset node when changing types
 	titleEdit.value = $props.name;
-	outputsEdit.value = $props.outputs?.slice() || nodeType.value?.outputs?.slice() || [];
+	if ($props.nodeId === -1) {
+		outputsEdit.value = nodeType.value?.outputs?.slice() || [];
+	} else {
+		outputsEdit.value = $props.outputs?.slice() || [];
+	}
 	metaEdit.value = $props.meta || {};
 });
 
