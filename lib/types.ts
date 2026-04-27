@@ -43,4 +43,6 @@ export interface NodeType {
 	meta?: Record<string, unknown>;
 	// Custom editor for the component. Use this to create editors for metadata
 	nodeEditComponent?: Component;
+	// Short description of what this node type does, displayed in the editor
+	description?: string;
 };

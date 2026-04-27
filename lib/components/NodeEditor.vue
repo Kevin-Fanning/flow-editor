@@ -30,6 +30,9 @@
 						>
 					</label>
 				</fieldset>
+				<p v-if="nodeType?.description" class="node-description">
+					{{ nodeType.description }}
+				</p>
 				<component
 					v-if="nodeType?.nodeEditComponent"
 					:is="nodeType?.nodeEditComponent"
@@ -196,5 +199,12 @@ function close() {
 	max-height: 100%;
 	overflow: auto;
 	background-color: var(--fe-color-background);
+}
+
+.node-description {
+	font-size: 0.85em;
+	opacity: 0.7;
+	margin: 0 0 8px 0;
+	line-height: 1.4;
 }
 </style>

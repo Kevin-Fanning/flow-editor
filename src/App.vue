@@ -126,6 +126,7 @@ const nodeTypes: NodeType[] = [{
 	}],
 }, {
 	name: 'Multiple Outputs',
+	description: 'A node type that allows you to define your own output paths.',
 	type: 'multiple_outputs',
 	fill: '#512DA8',
 	width: 300,
