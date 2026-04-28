@@ -5,9 +5,6 @@
   "private": false,
   "license": "MIT",
   "type": "module",
-  "files": [
-    "dist"
-  ],
   "main": "dist/main.js",
   "exports": {
     ".": "./dist/main.js",

@@ -5,7 +5,6 @@
 		}"
 		class="node"
 		:class="{ selected }"
-		@click="$emit('select', nodeId)"
 	>
 		<rect
 			class="node-container"
@@ -105,7 +104,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { NodeType, Output } from '../types.ts';
-defineEmits(['select', 'mousedown:output', 'mouseenter:input', 'mouseleave:input']);
+const $emit = defineEmits(['mousedown:output', 'mouseenter:input', 'mouseleave:input']);
 
 const alertIcon = 'M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z';
 

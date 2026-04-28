@@ -93,7 +93,6 @@
 							:y="draggingNode?.nodeId === node.nodeId ? draggingNodePosition.y : node.y"
 							:node-type="nodeTypes.find(type => type.type === node.type) ?? null"
 							:selected="selectedId === node.nodeId"
-							@select="selectNode"
 							@mousedown="(evt: MouseEvent) => nodeDragStart(evt, node)"
 							@mousedown:output="outputDragStart"
 							@mouseenter:input="inputEnter"
@@ -244,10 +243,6 @@ const selected = computed(() => {
 });
 
 function selectNode(nodeId: number) {
-	if (didNodeDrag) {
-		didNodeDrag = false;
-		return;
-	}
 	selectedId.value = nodeId;
 }
 
@@ -438,11 +433,13 @@ function dragEnd() {
 		const xDist = Math.abs(startScrollX - draggingNodePosition.value.x);
 		const yDist = Math.abs(startScrollY - draggingNodePosition.value.y);
 		if (xDist <= 5 && yDist <= 5) {
-			// Don't count this, user meant to click
+			// No meaningful drag — treat as a click to select
 			draggingNode.value.x = startScrollX;
 			draggingNode.value.y = startScrollY;
+			const nodeId = draggingNode.value.nodeId;
 			draggingNode.value = null;
 			didNodeDrag = false;
+			selectNode(nodeId);
 			return;
 		}
 		didNodeDrag = startScrollX !== draggingNodePosition.value.x || startScrollY !== draggingNodePosition.value.y;
